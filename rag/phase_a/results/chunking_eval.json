@@ -1,0 +1,14 @@
+{
+  "A（按条款）": {
+    "precision_at_k": 0.75,
+    "noise_rate": 0.1875
+  },
+  "B（固定200字）": {
+    "precision_at_k": 0.6875,
+    "noise_rate": 0.1875
+  },
+  "C（递归语义）": {
+    "precision_at_k": 0.8125,
+    "noise_rate": 0.1875
+  }
+}

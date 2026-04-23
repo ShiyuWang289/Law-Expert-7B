@@ -1,0 +1,8 @@
+model_name_or_path: models/Qwen/Qwen2___5-7B-Instruct
+adapter_name_or_path: /root/autodl-tmp/saves/law_qa_qlora_sft
+template: qwen
+finetuning_type: lora
+export_dir: /root/autodl-tmp/merged_models/law_qa_sft
+export_size: 2
+export_device: auto
+export_legacy_format: false

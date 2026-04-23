@@ -1,0 +1,58 @@
+{
+  "0.85": {
+    "label": "当前配置_c8",
+    "total_reqs": 20,
+    "success_reqs": 20,
+    "fail_reqs": 0,
+    "tps": 9.54,
+    "ttft_avg_ms": 135.6,
+    "ttft_p50_ms": 82.6,
+    "ttft_p99_ms": 222.6,
+    "latency_avg_ms": 4729.0,
+    "latency_p50_ms": 4652.0,
+    "latency_p99_ms": 6187.0,
+    "avg_out_tokens": 3.0
+  },
+  "0.95": {
+    "label": "当前配置_c8",
+    "total_reqs": 20,
+    "success_reqs": 20,
+    "fail_reqs": 0,
+    "tps": 9.53,
+    "ttft_avg_ms": 154.1,
+    "ttft_p50_ms": 83.4,
+    "ttft_p99_ms": 277.1,
+    "latency_avg_ms": 4751.5,
+    "latency_p50_ms": 4708.7,
+    "latency_p99_ms": 6188.4,
+    "avg_out_tokens": 3.0
+  },
+  "max_model_len_2048": {
+    "label": "当前配置_c8",
+    "total_reqs": 20,
+    "success_reqs": 20,
+    "fail_reqs": 0,
+    "tps": 9.54,
+    "ttft_avg_ms": 154.7,
+    "ttft_p50_ms": 83.8,
+    "ttft_p99_ms": 270.0,
+    "latency_avg_ms": 4741.7,
+    "latency_p50_ms": 4689.3,
+    "latency_p99_ms": 6184.3,
+    "avg_out_tokens": 3.0
+  },
+  "max_model_len_4096": {
+    "label": "当前配置_c8",
+    "total_reqs": 20,
+    "success_reqs": 20,
+    "fail_reqs": 0,
+    "tps": 9.53,
+    "ttft_avg_ms": 151.3,
+    "ttft_p50_ms": 83.8,
+    "ttft_p99_ms": 270.0,
+    "latency_avg_ms": 4748.4,
+    "latency_p50_ms": 4700.1,
+    "latency_p99_ms": 6189.8,
+    "avg_out_tokens": 3.0
+  }
+}

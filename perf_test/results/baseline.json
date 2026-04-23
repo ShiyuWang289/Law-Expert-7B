@@ -1,0 +1,44 @@
+{
+  "baseline_c1": {
+    "label": "基线_串行(c=1)",
+    "total_reqs": 10,
+    "success_reqs": 10,
+    "fail_reqs": 0,
+    "tps": 4.88,
+    "ttft_avg_ms": 72.6,
+    "ttft_p50_ms": 47.4,
+    "ttft_p99_ms": 300.1,
+    "latency_avg_ms": 3967.9,
+    "latency_p50_ms": 3842.5,
+    "latency_p99_ms": 5531.0,
+    "avg_out_tokens": 2.7
+  },
+  "baseline_c4": {
+    "label": "基线_低并发(c=4)",
+    "total_reqs": 12,
+    "success_reqs": 12,
+    "fail_reqs": 0,
+    "tps": 10.86,
+    "ttft_avg_ms": 77.1,
+    "ttft_p50_ms": 77.1,
+    "ttft_p99_ms": 78.5,
+    "latency_avg_ms": 4982.8,
+    "latency_p50_ms": 5485.7,
+    "latency_p99_ms": 6355.5,
+    "avg_out_tokens": 5.8
+  },
+  "baseline_c8": {
+    "label": "基线_中并发(c=8)",
+    "total_reqs": 24,
+    "success_reqs": 24,
+    "fail_reqs": 0,
+    "tps": 8.43,
+    "ttft_avg_ms": 3191.8,
+    "ttft_p50_ms": 81.1,
+    "ttft_p99_ms": 9406.9,
+    "latency_avg_ms": 8161.0,
+    "latency_p50_ms": 6479.9,
+    "latency_p99_ms": 15891.1,
+    "avg_out_tokens": 5.6
+  }
+}

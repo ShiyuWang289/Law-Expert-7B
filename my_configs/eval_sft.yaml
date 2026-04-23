@@ -1,0 +1,9 @@
+model_name_or_path: /root/autodl-tmp/merged_models/law_qa_sft
+template: qwen
+task: ceval_validation
+lang: zh
+n_shot: 5
+batch_size: 4
+save_dir: /root/autodl-tmp/eval_results/sft
+finetuning_type: full
+trust_remote_code: true

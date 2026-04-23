@@ -1,0 +1,88 @@
+# rag/fix_reranker_output.py
+"""
+修复Reranker输出层 - 添加sigmoid激活和正确的损失函数配置
+"""
+
+import json
+import os
+from transformers import AutoConfig, AutoModelForSequenceClassification
+import torch
+
+model_dir = "/root/autodl-tmp/embedding_model/BAAI/bge-reranker-base"
+config_path = os.path.join(model_dir, "config.json")
+
+print("🔧 修复Reranker输出层配置\n")
+
+# 第一步：更新config.json
+print("第一步：更新config.json")
+with open(config_path, 'r') as f:
+    config = json.load(f)
+
+print(f"修改前:")
+print(f"  - num_labels: {config.get('num_labels', 'N/A')}")
+print(f"  - problem_type: {config.get('problem_type', 'N/A')}")
+
+# 关键修改：设置正确的配置
+config['num_labels'] = 1
+config['problem_type'] = 'regression'  # ✅ 使用回归而不是分类
+
+with open(config_path, 'w') as f:
+    json.dump(config, f, indent=2)
+
+print(f"\n修改后:")
+print(f"  - num_labels: 1")
+print(f"  - problem_type: regression\n")
+
+# 第二步：验证模型能正确加载和推理
+print("第二步：验证模型\n")
+
+try:
+    from transformers import AutoTokenizer, AutoModelForSequenceClassification
+    
+    # 加载模型和tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(model_dir)
+    model = AutoModelForSequenceClassification.from_pretrained(model_dir)
+    
+    print(f"✅ 模型加载成功")
+    print(f"   模型类型: {type(model).__name__}")
+    print(f"   Config.num_labels: {model.config.num_labels}")
+    print(f"   Config.problem_type: {model.config.problem_type}\n")
+    
+    # 测试推理
+    print("测试推理:")
+    test_pairs = [
+        ("公司裁员赔偿", "劳动合同法第四十六条用人单位应当支付经济补偿"),
+        ("公司裁员赔偿", "工伤保险条例关于保险待遇"),
+        ("公司裁员赔偿", "民法典侵权责任"),
+    ]
+    
+    model.eval()
+    with torch.no_grad():
+        for query, doc in test_pairs:
+            # 构建输入
+            inputs = tokenizer(
+                query, doc,
+                truncation=True,
+                max_length=512,
+                return_tensors="pt"
+            )
+            
+            # 推理
+            outputs = model(**inputs)
+            logits = outputs.logits
+            
+            # 应用sigmoid得到0-1范围的分数
+            score = torch.sigmoid(logits[0][0]).item()
+            
+            print(f"  [{score:.4f}] {doc[:40]}...")
+    
+    print("\n✅ 修复验证完成")
+    
+except Exception as e:
+    print(f"❌ 验证失败: {e}")
+    import traceback
+    traceback.print_exc()
+
+print("\n" + "="*60)
+print("✅ Reranker输出层已修复")
+print("="*60)

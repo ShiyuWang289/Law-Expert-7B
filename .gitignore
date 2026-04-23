@@ -1,0 +1,32 @@
+# 模型
+*.bin
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+merged_models/
+checkpoints/
+outputs/
+
+# 数据与语料
+data/
+law_corpus/
+
+# 向量数据库（可重新生成）
+vector_store/faiss.index
+vector_store/chroma_db/
+vector_store/bm25_index.pkl
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+env/
+
+# 系统
+.DS_Store
+*.swp
+*.log
+/tmp/
+autodl-tmp/
+embedding_model/

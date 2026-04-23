@@ -1,0 +1,182 @@
+
+=======================================================
+【基础文件】原有代码（改动前基线）
+=======================================================
+  ✅ retriever.py（原有检索器）  (4.6 KB)
+  ✅ rag_pipeline.py（原有Pipeline）  (4.3 KB)
+  ✅ law_corpus/（语料库）  (12 个文件)
+  ✅ vector_store/（向量存储）  (4 个文件)
+  ✅   └─ faiss.index  (56.0 KB)
+  ✅   └─ chunks_meta.json  (22.1 KB)
+
+=======================================================
+【依赖检查】pip 包安装状态
+=======================================================
+  ✅ import langchain_text_splitters
+  ✅ import chromadb
+  ✅ import rank_bm25
+  ✅ import sentence_transformers
+  ✅ import faiss
+  ✅ import jieba
+  ✅ import openai
+
+=======================================================
+【Phase A】切分策略实验
+=======================================================
+  ✅ chunking_strategies.py  (8.1 KB)
+  ✅ evaluate_chunking.py  (9.2 KB)
+  ✅ 切分结果 chunks_A.json（策略A）  (34 条)
+  ✅ 切分结果 chunks_B.json（策略B）  (39 条)
+  ✅ 切分结果 chunks_C.json（策略C）  (28 条)
+  ✅ 评测结果 chunking_eval.json  (0.3 KB)
+
+  ✅   [语法] chunking_strategies  [语法正常，可导入]
+  ✅   [语法] evaluate_chunking  [语法正常，可导入]
+
+  Phase A评测结果：
+    A（按条款）: Precision@3=75.0%  噪声率=18.8%
+    B（固定200字）: Precision@3=68.8%  噪声率=18.8%
+    C（递归语义）: Precision@3=81.2%  噪声率=18.8%
+
+=======================================================
+【Phase B】Embedding选型 + Chroma
+=======================================================
+  ✅ embedding_benchmark.py  (5.3 KB)
+  ✅ chroma_builder.py  (5.6 KB)
+  ✅ 评测结果 embedding_benchmark.json  (0.4 KB)
+  ✅ chroma_db/（Chroma持久化目录）  (2 个文件)
+
+  Embedding模型下载状态：
+  ✅ bge-small-zh  (183 MB)  BAAI/bge-small-zh-v1___5
+  ✅ bge-small-zh  (0 MB)  BAAI/bge-small-zh-v1___5/1_Pooling
+  ✅ bge-reranker  (2143 MB)  BAAI/bge-reranker-base
+  ✅ bge-small-zh  (92 MB)  models--BAAI--bge-small-zh-v1.5/snapshots/7999e1d3359715c523056ef9478215996d62a620
+  ✅ bge-small-zh  (0 MB)  models--BAAI--bge-small-zh-v1.5/snapshots/7999e1d3359715c523056ef9478215996d62a620/1_Pooling
+  ✅ bge-base-zh   (391 MB)  AI-ModelScope/bge-base-zh-v1___5
+  ✅ bge-base-zh   (0 MB)  AI-ModelScope/bge-base-zh-v1___5/1_Pooling
+
+  ❌   [语法] embedding_benchmark  [导入错误: ModuleNotFoundError: No module named 'evaluate_chunking']
+  ✅   [语法] chroma_builder  [语法正常，可导入]
+
+=======================================================
+【Phase C】企业级三件套
+=======================================================
+  ✅ bm25_index.py  (3.6 KB)
+  ✅ hybrid_retriever.py  (5.1 KB)
+  ✅ reranker.py  (2.9 KB)
+  ✅ citation_formatter.py  (4.9 KB)
+  ✅ enterprise_pipeline.py  (5.7 KB)
+  ✅ BM25索引 bm25_index.pkl  (43.8 KB)
+  ✅ Pipeline测试结果  (11.0 KB)
+
+  ✅   [语法] bm25_index  [语法正常，可导入]
+  ✅   [语法] hybrid_retriever  [语法正常，可导入]
+  ✅   [语法] reranker  [语法正常，可导入]
+  ✅   [语法] citation_formatter  [语法正常，可导入]
+  ✅   [语法] enterprise_pipeline  [语法正常，可导入]
+  ✅   BM25索引可读，包含 28 个文档
+
+=======================================================
+【Phase D】消融实验
+=======================================================
+  ✅ ablation_experiment.py  (10.9 KB)
+  ✅ 消融实验原始数据  (252.1 KB)
+  ✅ 消融实验报告  (0.7 KB)
+
+  报告预览（前15行）：
+    # RAG系统消融实验报告
+    
+    ## 总体对比
+    
+    | 版本 | 说明 | 平均总分 | 关键点覆盖 | 延迟 |
+    |:---|:---|:---:|:---:|:---:|
+    | V1_no_rag | 纯微调，无RAG（基线） | 87.7 | 62.3% | 11.0s |
+    | V2_simple_rag | 简单RAG（bge-small+FAISS） | 91.0 | 66.3% | 7.3s |
+    | V3_better_chunking | 优化切分+bge-base | 85.4 | 54.8% | 14.7s |
+    | V4_hybrid_reranker | V3+Hybrid+Reranker | 87.7 | 56.8% | 13.0s |
+    | V5_full_citation | V4+引用溯源（完整版） | 85.8 | 54.3% | 14.1s |
+    
+    ## 版本间改进
+    
+    | 对标版本 | 改进指标 | 性能变化 |
+
+=======================================================
+【实际目录扫描】rag/ 下所有 .py 和 .json 文件
+=======================================================
+
+  .py 文件：
+    01_prepare_corpus.py                                       12.2 KB
+    02_build_index.py                                           6.5 KB
+    04_rag_pipeline.py                                          4.3 KB
+    05_evaluate_rag.py                                          5.9 KB
+    check_progress.py                                          12.3 KB
+    download_hf_mirror.py                                       3.1 KB
+    fix_reranker_output.py                                      2.6 KB
+    rag_pipeline.py                                             4.3 KB
+    rebuild_v2_index.py                                         2.4 KB
+    retriever.py                                                4.6 KB
+    .ipynb_checkpoints/03_retriever-checkpoint.py               4.7 KB
+    .ipynb_checkpoints/04_rag_pipeline-checkpoint.py            4.3 KB
+    .ipynb_checkpoints/check_progress-checkpoint.py            12.3 KB
+    .ipynb_checkpoints/download_hf_mirror-checkpoint.py         0.0 KB
+    .ipynb_checkpoints/fix_reranker_output-checkpoint.py        0.0 KB
+    .ipynb_checkpoints/rag_pipeline-checkpoint.py               4.3 KB
+    .ipynb_checkpoints/rebuild_v2_index-checkpoint.py           2.4 KB
+    .ipynb_checkpoints/retriever-checkpoint.py                  4.6 KB
+    phase_a/chunking_strategies.py                              8.1 KB
+    phase_a/evaluate_chunking.py                                9.2 KB
+    phase_a/.ipynb_checkpoints/chunking_strategies-checkpoint.py     0.0 KB
+    phase_a/.ipynb_checkpoints/evaluate_chunking-checkpoint.py     9.2 KB
+    phase_b/chroma_builder.py                                   5.6 KB
+    phase_b/embedding_benchmark.py                              5.3 KB
+    phase_b/.ipynb_checkpoints/chroma_builder-checkpoint.py     0.0 KB
+    phase_b/.ipynb_checkpoints/embedding_benchmark-checkpoint.py     5.3 KB
+    phase_c/bm25_index.py                                       3.6 KB
+    phase_c/citation_formatter.py                               4.9 KB
+    phase_c/enterprise_pipeline.py                              5.7 KB
+    phase_c/hybrid_retriever.py                                 5.1 KB
+    phase_c/reranker.py                                         2.9 KB
+    phase_c/.ipynb_checkpoints/bm25_index-checkpoint.py         0.0 KB
+    phase_c/.ipynb_checkpoints/citation_formatter-checkpoint.py     0.0 KB
+    phase_c/.ipynb_checkpoints/enterprise_pipeline-checkpoint.py     5.7 KB
+    phase_c/.ipynb_checkpoints/hybrid_retriever-checkpoint.py     5.1 KB
+    phase_c/.ipynb_checkpoints/reranker-checkpoint.py           2.9 KB
+    phase_d/ablation_experiment.py                             10.9 KB
+    phase_d/ablation_with_stats.py                              6.7 KB
+    phase_d/diagnose_retrieval.py                               2.2 KB
+    phase_d/.ipynb_checkpoints/ablation_experiment-checkpoint.py    10.9 KB
+    phase_d/.ipynb_checkpoints/ablation_with_stats-checkpoint.py     6.7 KB
+    phase_d/.ipynb_checkpoints/diagnose_retrieval-checkpoint.py     2.2 KB
+
+  .json 文件：
+    law_corpus/meta.json                                        0.5 KB
+    vector_store/chunks_meta.json                              22.1 KB
+    results/rag_raw_results.json                               90.4 KB
+    phase_a/chunk_results/chunks_A.json                        22.7 KB
+    phase_a/chunk_results/chunks_B.json                        26.0 KB
+    phase_a/chunk_results/chunks_C.json                        22.1 KB
+    phase_a/results/chunking_eval.json                          0.3 KB
+    phase_a/results/.ipynb_checkpoints/chunking_eval-checkpoint.json     0.3 KB
+    phase_b/results/embedding_benchmark.json                    0.4 KB
+    phase_c/results/enterprise_pipeline_test.json              11.0 KB
+    phase_d/results/ablation_raw.json                         252.1 KB
+
+  .pkl 文件：
+    vector_store/bm25_index.pkl                                43.8 KB
+
+=======================================================
+【汇总】进度概览
+=======================================================
+  ✅ 已完成  Phase A（切分实验）
+  ✅ 已完成  Phase B（Embedding）
+  ✅ 已完成  Phase C（企业三件套）
+  ✅ 已完成  Phase D（消融实验）
+
+──────────────────────────────────────────────────────
+下一步：把以上输出完整贴给我，
+我会帮你判断：
+  1. 每个Phase的具体完成度（文件存在 ≠ 正确运行）
+  2. 代码改乱的具体问题点
+  3. 哪些部分可以直接修复，哪些需要重新写
+──────────────────────────────────────────────────────
+
