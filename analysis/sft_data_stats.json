@@ -1,0 +1,40 @@
+{
+  "input_file": "data/law_qa_alpaca.json",
+  "valid_samples": 483,
+  "input_length": {
+    "mean": 55.58,
+    "p50": 48.0,
+    "p95": 127.9,
+    "max": 309
+  },
+  "output_length": {
+    "mean": 330.86,
+    "p50": 298.0,
+    "p95": 739.2,
+    "max": 1440
+  },
+  "quality_indicators": {
+    "output_lt_30_count": 0,
+    "output_lt_30_ratio_pct": 0.0,
+    "url_noise_count": 0,
+    "url_noise_ratio_pct": 0.0,
+    "law_reference_count": 351,
+    "law_reference_ratio_pct": 72.67,
+    "duplicate_input_count": 0,
+    "duplicate_input_ratio_pct": 0.0,
+    "duplicate_output_count": 0,
+    "duplicate_output_ratio_pct": 0.0
+  },
+  "category_distribution": {
+    "合同": 149,
+    "劳动": 65,
+    "其他": 63,
+    "刑事": 56,
+    "婚姻家庭": 50,
+    "民事程序": 47,
+    "公司商事": 28,
+    "房产": 10,
+    "行政": 10,
+    "交通事故": 5
+  }
+}

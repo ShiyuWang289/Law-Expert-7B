@@ -1,0 +1,20 @@
+{
+  "input_file": "data/law_qa_alpaca.json",
+  "output_file": "raw_data/law_qa_cleaned.jsonl",
+  "stage_stats": {
+    "raw_total": 483,
+    "after_basic_clean": 483,
+    "quality_stage_input": 483,
+    "after_quality_clean": 481,
+    "quality_stage_removed": 2
+  },
+  "quality_rules": [
+    {
+      "rule_key": "low_legal_relevance",
+      "rule": "no legal keywords in output",
+      "hits": 2,
+      "hit_ratio_in_quality_stage_pct": 0.41,
+      "contribution_in_raw_total_pct": 0.41
+    }
+  ]
+}

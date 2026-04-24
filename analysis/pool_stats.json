@@ -1,0 +1,15 @@
+{
+  "input_file": "./raw_data/DISC-Law-SFT/DISC-Law-SFT-Pair-QA-released.jsonl",
+  "output_pool_file": "raw_data/law_qa_pool.jsonl",
+  "raw_total": 79692,
+  "kept": 67261,
+  "drop": {
+    "bad_json": 0,
+    "empty": 0,
+    "input_too_short": 0,
+    "output_too_short": 9099,
+    "total_too_long": 177,
+    "dup_input": 3148,
+    "contains_url": 7
+  }
+}
