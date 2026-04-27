@@ -1,4 +1,0 @@
-model_name_or_path: /root/autodl-tmp/LLaMA-Factory/models/Qwen/Qwen2.5-7B-Instruct
-adapter_name_or_path: /root/autodl-tmp/saves/law_qa_qlora_sft
-template: qwen
-finetuning_type: lora
