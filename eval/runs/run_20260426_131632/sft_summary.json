@@ -1,0 +1,11 @@
+{
+  "model": "sft",
+  "model_path": "/root/autodl-tmp/merged_models/law_qa_sft",
+  "run_tag": "run_20260426_131632",
+  "n_cases": 10,
+  "law_accuracy": 0.85,
+  "coverage": 0.26666666666666666,
+  "repetition_rate": 0.0,
+  "avg_len": 308.5,
+  "hallucination_count": 0
+}

@@ -1,0 +1,10 @@
+{
+  "concurrency": 4,
+  "requests": 20,
+  "max_tokens": 128,
+  "tps": 161.73,
+  "ttft_p99_ms": 286.3,
+  "lat_p99_ms": 3295.1,
+  "lat_avg_ms": 3119.8,
+  "avg_tokens": 126.2
+}

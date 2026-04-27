@@ -92,7 +92,7 @@ TEST_CASES = [
 SYSTEM_PROMPT = "你是一个专业的中国法律顾问，请根据用户的法律问题，给出准确、专业、有法律依据的回答。"
 
 MODEL_PATHS = {
-    "base": "/root/autodl-tmp/models/Qwen/Qwen2___5-7B-Instruct",
+    "base": "/root/autodl-tmp/LLaMA-Factory/models/Qwen/Qwen2.5-7B-Instruct",
     "sft":  "/root/autodl-tmp/merged_models/law_qa_sft",
     "dpo":  "/root/autodl-tmp/merged_models/law_qa_dpo",
 }
@@ -126,6 +126,8 @@ def main():
     print(f"\n{'='*60}")
     print(f"加载模型: {args.model.upper()} → {model_path}")
     
+    # 修复模型路径中的下划线问题
+    model_path = model_path.replace('___', '_')
     tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
     model = AutoModelForCausalLM.from_pretrained(
         model_path,
