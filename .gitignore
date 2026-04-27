@@ -4,9 +4,18 @@
 *.pt
 *.pth
 *.ckpt
+*.onnx
+*.h5
+*.msgpack
 merged_models/
+quantized_models/
 checkpoints/
 outputs/
+checkpoint-*/
+runs/
+wandb/
+events.out.tfevents*
+saves/
 
 # 数据与语料
 data/
@@ -16,15 +25,26 @@ law_corpus/
 vector_store/faiss.index
 vector_store/chroma_db/
 vector_store/bm25_index.pkl
+rag/vector_store/faiss.index
 
 # Python
 __pycache__/
 *.pyc
+.pytest_cache/
 .venv/
 env/
+.env
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Local outputs
+eval_results/
+bench/results/
 
 # 系统
 .DS_Store
+Thumbs.db
 *.swp
 *.log
 /tmp/
