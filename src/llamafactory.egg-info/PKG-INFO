@@ -123,1194 +123,960 @@ Dynamic: requires-dist
 Dynamic: requires-python
 Dynamic: summary
 
-# Law-Expert-7B：从 SFT 到 DPO、评测、部署的法律专家模型工程实践
+![# LLaMA Factory](assets/logo.png)
+
+[![GitHub Repo stars](https://img.shields.io/github/stars/hiyouga/LLaMA-Factory?style=social)](https://github.com/hiyouga/LLaMA-Factory/stargazers)
+[![GitHub last commit](https://img.shields.io/github/last-commit/hiyouga/LLaMA-Factory)](https://github.com/hiyouga/LLaMA-Factory/commits/main)
+[![GitHub contributors](https://img.shields.io/github/contributors/hiyouga/LLaMA-Factory?color=orange)](https://github.com/hiyouga/LLaMA-Factory/graphs/contributors)
+[![GitHub workflow](https://github.com/hiyouga/LLaMA-Factory/actions/workflows/tests.yml/badge.svg)](https://github.com/hiyouga/LLaMA-Factory/actions/workflows/tests.yml)
+[![PyPI](https://img.shields.io/pypi/v/llamafactory)](https://pypi.org/project/llamafactory/)
+[![Citation](https://img.shields.io/badge/citation-447-green)](https://scholar.google.com/scholar?cites=12620864006390196564)
+[![GitHub pull request](https://img.shields.io/badge/PRs-welcome-blue)](https://github.com/hiyouga/LLaMA-Factory/pulls)
+
+[![Twitter](https://img.shields.io/twitter/follow/llamafactory_ai)](https://twitter.com/llamafactory_ai)
+[![Discord](https://dcbadge.vercel.app/api/server/rKfvV9r9FK?compact=true&style=flat)](https://discord.gg/rKfvV9r9FK)
+[![GitCode](https://gitcode.com/zhengyaowei/LLaMA-Factory/star/badge.svg)](https://gitcode.com/zhengyaowei/LLaMA-Factory)
+
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1eRTPn37ltBbYsISy9Aw2NuI2Aq5CQrD9?usp=sharing)
+[![Open in DSW](https://gallery.pai-ml.com/assets/open-in-dsw.svg)](https://gallery.pai-ml.com/#/preview/deepLearning/nlp/llama_factory)
+[![Spaces](https://img.shields.io/badge/🤗-Open%20in%20Spaces-blue)](https://huggingface.co/spaces/hiyouga/LLaMA-Board)
+[![Studios](https://img.shields.io/badge/ModelScope-Open%20in%20Studios-blue)](https://modelscope.cn/studios/hiyouga/LLaMA-Board)
+[![SageMaker](https://img.shields.io/badge/SageMaker-Open%20in%20AWS-blue)](https://aws.amazon.com/cn/blogs/china/a-one-stop-code-free-model-fine-tuning-deployment-platform-based-on-sagemaker-and-llama-factory/)
 
-## 0. 项目概览
-- 项目目标
-- 技术路线总览（SFT → DPO → Eval → Deploy）
-- 当前进度看板（已完成 / 进行中 / 规划中）
+<div align="center" markdown="1">
+
+### Supporters ❤️
 
----
+<a href="https://warp.dev/llama-factory">
+    <img alt="Warp sponsorship" width="400" src="https://github.com/user-attachments/assets/ab8dd143-b0fd-4904-bdc5-dd7ecac94eae">
+</a>
 
-## 1. 训练与对齐（核心主线）
+#### [Warp, the agentic terminal for developers](https://warp.dev/llama-factory)
 
-### 1.1 数据工程设计（SFT 数据管线）
+[Available for MacOS, Linux, & Windows](https://warp.dev/llama-factory)
 
-#### 1.1.1 数据来源与处理目标
-- 原始数据来源：DISC-Law-SFT（约 9 万条法律问答）
-- 当前用于统计的数据文件：`data/law_qa_alpaca.json`
-- 目标：将“数据清洗”升级为“数据工程设计”，通过统计证据支撑样本质量与选择策略，而非经验拍脑袋。
+</div>
 
-#### 1.1.2 P1 数据统计看板（已完成）
-统计脚本：
-- `stats_dashboard.py`
+----
 
-运行命令：
-```bash
-python stats_dashboard.py
-```
+<h3 align="center">
+    Easily fine-tune 100+ large language models with zero-code <a href="#quickstart">CLI</a> and <a href="#fine-tuning-with-llama-board-gui-powered-by-gradio">Web UI</a>
+</h3>
 
-产出文件：
-- `analysis/sft_data_stats.json`
-- `analysis/category_distribution.csv`
-- `analysis/sft_data_dashboard.md`
+<p align="center">
+    <picture>
+        <img alt="Github trend" src="https://trendshift.io/api/badge/repositories/4535">
+    </picture>
+</p>
 
-#### 1.1.3 统计结果（当前版本）
-- 有效样本数：**483**
+👋 Join our [WeChat](assets/wechat.jpg) or [NPU user group](assets/wechat_npu.jpg).
 
-长度分布（字符级）：
+\[ English | [中文](README_zh.md) \]
 
-| 指标 | input | output |
-|---|---:|---:|
-| mean | 55.58 | 330.86 |
-| P50 | 48.0 | 298.0 |
-| P95 | 127.9 | 739.2 |
-| max | 309 | 1440 |
+**Fine-tuning a large language model can be easy as...**
 
-质量指标：
+https://github.com/user-attachments/assets/3991a3a8-4276-4d30-9cab-4cb0c4b9b99e
 
-| 指标 | 数值 |
-|---|---:|
-| output < 30 占比 | 0.0% |
-| URL 噪声占比 | 0.0% |
-| 法条引用占比 | 72.67% |
-| 近重复(input)占比 | 0.0% |
-| 近重复(output)占比 | 0.0% |
+Choose your path:
 
-#### 1.1.4 当前工程结论（基于 P1）
-1. 当前数据在短答、URL噪声、重复样本维度上已达到较高洁净度；  
-2. 输出长度显著高于输入长度，符合“法律解释型回答”特征；  
-3. 法条引用比例较高（72.67%），可支撑法律风格强化目标；  
-4. 后续需结合类别分布和对照实验进一步评估偏置风险与泛化能力。
-
-#### 1.1.5 风险与后续计划（占位）
-- [待补] 类别均衡分析（劳动/婚姻/合同等）
-- [x] “随机 500 vs 工程化 500”对照实验（P3 已完成）
-- [待补] 偏置缓解策略（重采样、补样本、阈值回调）
-
-#### 1.1.6 清洗规则决策（P2，已完成）
-
-为回答“阈值怎么来的、是否会误伤”，我们将清洗规则工程化为四元组文档：
-
-- 文档：`docs/data_rules_rationale.md`
-- 统计产物：`analysis/rule_hits.json`、`analysis/rule_hits.md`
-- 运行命令：
-```bash
-python advanced_clean.py
-```
-
-##### P2 统计结果（当前版本）
-
-阶段统计：
-
-| 阶段 | 样本数 |
-|---|---:|
-| 原始样本 | 483 |
-| 基础清洗后 | 483 |
-| 质量过滤输入 | 483 |
-| 质量过滤后 | 481 |
-| 质量阶段删除量 | 2 |
-
-规则命中明细：
-
-| 规则Key | 规则 | 命中数 | 在质量阶段命中比例 | 对原始总量删除贡献 |
-|---|---|---:|---:|---:|
-| low_legal_relevance | no legal keywords in output | 2 | 0.41% | 0.41% |
-
-##### 工程解读
-
-1. 当前数据在长度、噪声、重复等维度已较洁净，质量规则未触发大量删除；  
-2. 本轮过滤主要由“法律相关性兜底规则”生效，用于保证领域一致性；  
-3. 该规则存在潜在误伤风险：可能删除“语义合法律但未显式出现关键词”的样本；  
-4. 后续将对被删除样本进行人工抽检，并评估是否引入语义分类器替代纯关键词规则。
-
-##### 面试可复述要点
-
-> 我们把每条清洗规则都拆成“规则-阈值来源-命中比例-偏置风险”，并输出结构化统计。  
-> 在当前数据版本中，质量阶段仅删除 0.41%，说明数据已较成熟，规则主要承担领域一致性兜底，而不是粗暴筛除。
-
----
-
-#### 1.1.7 P3 对照实验（随机500 vs 工程化500，已完成）
-
-##### 实验目标
-验证“数据工程策略”是否在同等训练配置下带来稳定收益，而非随机波动。
-
-##### 候选池与采样
-- 候选池文件：`raw_data/law_qa_pool.jsonl`
-- 候选池规模：**67,261**
-- A组：随机采样 500
-- B组：分层 + 质量评分采样 500
-- 约束：A/B 使用同一候选池与同一训练范式，仅替换训练数据
-
-##### 训练结果
-| 组别 | eval_loss |
-|---|---:|
-| A（随机500） | 1.1755 |
-| B（工程化500） | 1.0844 |
-
-- 相对下降（B vs A）：**7.75%**
-
-##### 自动评测结果（20题，0-10）
-| 维度 | A | B |
-|---|---:|---:|
-| law_basis | 1.90 | 2.30 |
-| structure | 1.55 | 2.55 |
-| coverage | 2.10 | 2.30 |
-| length | 1.00 | 1.00 |
-| total | 6.55 | 8.15 |
-
-- 胜场统计：**A=2, B=15, Tie=3**
-
-##### P3 结论
-1. B 在 `eval_loss` 上优于 A，且下降幅度达到 **7.75%**；  
-2. B 在自动评测总分上显著更高（8.15 vs 6.55）；  
-3. 胜场统计明显倾向 B（15:2），与训练指标方向一致；  
-4. 以上结果支持“工程化样本构建有效”，证明数据工程在法律问答场景具备可复现收益。
-
-### 1.2 SFT 训练方案
-
-#### 1.2.1 训练目标与机制
-- 目标函数：最大化 \(P(y|x)\)，最小化回答 token 的 NLL loss。
-- 默认策略：`train_on_prompt=false`（仅在 assistant token 上算 loss）。
-- 原因：聚焦回答质量学习，避免 prompt token 稀释监督信号。
-
-#### 1.2.2 参数配置（本项目实配）
-- 基座模型：`Qwen2.5-7B-Instruct`
-- 微调方式：`QLoRA (4bit) + LoRA`
-- LoRA 参数：`lora_rank=16`, `lora_alpha=32`, `lora_target=all`, `lora_dropout=0.05`
-- 量化参数：`quantization_bit=4`（NF4）
-- 训练精度：`bf16=true`, `max_grad_norm=1.0`
-- 学习率：`1e-4`
-- 等效 batch：`per_device_train_batch_size=2`, `gradient_accumulation_steps=8`（等效 16）
-- 模板：`template=qwen`
-- 长度：`cutoff_len=2048`
-
-#### 1.2.3 数据格式与注册流程
-1. 原始数据下载与清洗  
-2. 精选样本  
-3. 格式转换（Alpaca / ShareGPT）  
-4. 放入 `data/`  
-5. 在 `dataset_info.json` 注册  
-6. 启动 LLaMA-Factory SFT 训练
-
-#### 1.2.4 训练执行步骤
-1. 准备 YAML（模型、数据、超参）  
-2. 运行：
-```bash
-llamafactory-cli train <your_sft_yaml>
-```
-3. 检查产物：
-- `training_loss.png`
-- `trainer_state.json` / `all_results.json`
-- LoRA adapter 输出目录（`adapter_model.safetensors` 等）  
-4. 对话对比：原始模型 vs SFT 模型，验证风格迁移是否生效
-
-#### 1.2.5 Template 一致性约束（关键机制）
-- 训练 template 与推理 template 必须一致。  
-- 不一致会导致：special token 排布变化 → 输入拼接模式变化 → 分布偏移（distribution shift）。  
-- 项目默认使用：`template: qwen`。
-
-#### 1.2.6 本次 SFT 实验结果（真实记录）
-
-| 指标 | 数值 |
-|---|---:|
-| epoch | 2.9217 |
-| train_loss | 1.1283 |
-| eval_loss | 1.1833 |
-| train_runtime(s) | 2508.8263 |
-| eval_runtime(s) | 32.5533 |
-| train_samples_per_second | 0.519 |
-| train_steps_per_second | 0.032 |
-
-#### 1.2.7 结果解读
-1. 训练已稳定跑通，模型可正常推理，无致命异常；  
-2. `eval_loss` 与 `train_loss` 接近，未出现明显过拟合信号；  
-3. 对话对比显示：SFT 后回答更精炼、法条引用更具体、咨询风格更专业；  
-4. 当前 500 条规模下提升符合预期，主要体现在“风格与表达分布”重塑。
-
-#### 1.2.8 优化方向
-- 降低震荡：`learning_rate` 从 `1e-4` 下调到 `5e-5`
-- 提升稳定性：`gradient_accumulation_steps` 增大（如 8 → 16）
-- 增强效果上限：训练样本扩展到 1000~2000
-- 进一步验证：增加 epoch 并观察是否继续下降
-
-#### 1.2.9 SFT 能力边界定义
-本项目 SFT 目标不是注入完整法律知识体系，而是：
-- 强化法律回答风格
-- 提升法条引用精确度
-- 改善结构化表达
-
-知识扩展与偏好优化主要依赖：
-- DPO 对齐
-- RAG 检索增强
-
----
-
-
-### 1.3 DPO 偏好对齐
-
-#### 1.3.1 目标
-在 SFT 基础上进一步优化“偏好层面质量”：法条引用准确性、回答完整度、拒答边界与实操路径清晰度。
-
-#### 1.3.2 数据与流程
-1. 基于 SFT 结果构造偏好数据（`chosen/rejected`）  
-2. 在 `dataset_info.json` 注册（`ranking: true`）  
-3. 执行 DPO 训练（`stage: dpo`，基于 SFT adapter 继续）  
-4. 三方对比：Base vs SFT vs DPO
-
-#### 1.3.3 机制解释
-- DPO 直接优化“chosen 相对 rejected 的偏好概率差”，不需要单独训练奖励模型。  
-- reference model 的作用：稳定更新、约束偏移，避免策略过度偏离。  
-- β 参数控制偏离 reference 的惩罚强度：  
-  - β 大：更保守，更新更稳  
-  - β 小：更激进，收益可能更高但风险更大
-
-#### 1.3.4 本轮训练结果
-
-| 指标 | 数值 |
-|---|---:|
-| epoch | 2.6154 |
-| train_loss | 0.1079 |
-| eval_loss | 0.0976 |
-| eval_rewards/margins | 4.4497 |
-| eval_rewards/accuracies | 1.0000 |
-| eval_rewards/chosen | 5.7655 |
-| eval_rewards/rejected | 1.3158 |
-| train_runtime(s) | 567.7126 |
-| eval_runtime(s) | 9.1397 |
-
-#### 1.3.5 结果解读
-1. DPO 训练流程已稳定跑通，loss 明显下降（~0.189 → 0.108）；  
-2. `eval_loss` 与 `train_loss` 接近，未见明显过拟合信号（loss 维度）；  
-3. `rewards/margins` 显著为正且较高，说明模型已学会偏好 chosen；  
-4. `accuracies=1.0` 在小数据场景下偏理想化，提示“记忆偏好对”的风险，需要更大偏好集验证泛化；  
-5. 三方对比中，DPO 在法条引用准确性、回答完整度、维权路径可执行性方面优于 SFT，但出现了小数据常见副作用（末尾重复）。
-
-#### 1.3.6 当前结论
-相对 SFT，DPO 在法条引用准确性与回答完整度上有明显提升；当前阶段已验证“方向正确”，但需通过更大偏好数据与 β 对照提升稳健性。
-
-
-### 1.4 Ablation 与稳定性分析
-
-本节目标：回答“为什么选这个学习率”以及“出现 loss 异常时如何系统排查”。
-
----
-
-#### 1.4.1 P4：Learning Rate 小型对照实验（必做）
-
-在同一数据与同一训练配置下，仅改变 learning rate 做 3 组快速对照（V100S）：
-
-- 数据集：`law_qa_p3_b_engineered_500`
-- 其余参数固定（仅改 `learning_rate`）
-- 快速配置：`max_samples=120, cutoff_len=512, num_train_epochs=0.3333`
-
-##### P4 结果汇总
-
-| learning rate | train_loss | eval_loss | train_runtime(s) | 结论 |
-|---:|---:|---:|---:|---|
-| 5e-5 | 1.1399 | 1.1025 | 77.8442 | 收敛偏慢，效果最弱 |
-| 1e-4 | 1.1219 | 1.0824 | 77.8653 | 中等表现 |
-| 2e-4 | **1.1087** | **1.0682** | 77.8786 | **最优** |
-
-##### P4 结论
-1. 在该实验设置下，`2e-4` 同时取得最低 `train_loss` 与最低 `eval_loss`；  
-2. 三组 runtime 基本一致，性能差异可归因于 learning rate；  
-3. 后续 SFT 默认学习率优先采用 **2e-4**，并在更长训练轮次做复验。
-
----
-
-#### 1.4.2 P5：Loss 诊断手册（必做）
-
-为避免“只会调参不会诊断”，沉淀了标准诊断流程：
-
-- 手册文档：`docs/loss_diagnosis_manual.md`
-- 自动诊断脚本：`analysis/p5_quick_diagnose.py`
-- 快速诊断配置：`my_configs/p5_diag_smoke.yaml`
-- 固定排查顺序：**lr → batch → data → rank**
-
-##### 现象 → 排查动作（摘要）
-
-| 现象 | 典型信号 | 优先排查 | 动作示例 |
-|---|---|---|---|
-| 震荡 | train loss 上下波动大 | lr / 有效batch | lr 下调 2x；增大 grad_accum |
-| 发散 | loss 持续上升、NaN/Inf | lr / 数值稳定性 | lr 降到 1/2~1/4；开启 grad clip |
-| 过拟合 | train 降、eval 升 | data / 正则 / rank | early stop；dropout↑；rank 16→8 |
-| 欠拟合 | train、eval 都高且降不动 | lr / 训练步数 / rank | lr 上调；epoch↑；rank 8→16 |
+- **Documentation**: https://llamafactory.readthedocs.io/en/latest/
+- **Colab (free)**: https://colab.research.google.com/drive/1eRTPn37ltBbYsISy9Aw2NuI2Aq5CQrD9?usp=sharing
+- **Local machine**: Please refer to [usage](#getting-started)
+- **PAI-DSW (free trial)**: [Llama3 Example](https://gallery.pai-ml.com/#/preview/deepLearning/nlp/llama_factory) | [Qwen2-VL Example](https://gallery.pai-ml.com/#/preview/deepLearning/nlp/llama_factory_qwen2vl) | [DeepSeek-R1-Distill Example](https://gallery.pai-ml.com/#/preview/deepLearning/nlp/llama_factory_deepseek_r1_distill_7b)
+- **Amazon SageMaker**: [Blog](https://aws.amazon.com/cn/blogs/china/a-one-stop-code-free-model-fine-tuning-deployment-platform-based-on-sagemaker-and-llama-factory/)
+- **Easy Dataset**: [Fine-tune on Synthetic Data](https://buaa-act.feishu.cn/wiki/GVzlwYcRFiR8OLkHbL6cQpYin7g)
 
-##### P5 快速实验结果（本轮）
-- 训练摘要：`train_loss=1.1087`, `eval_loss=1.0682`, `train_runtime≈77.75s`
-- 诊断脚本输出：`train_loss_count=1`, `eval_loss_count=0`
-- 解读：本次 smoke run 日志点过少，**不足以判断趋势类问题**（震荡/过拟合/欠拟合）；可给出“未见明显异常信号”的弱结论。
+> [!NOTE]
+> Except for the above links, all other websites are unauthorized third-party websites. Please carefully use them.
 
-##### P5 结论与下一步
-1. 已建立“现象→动作→证据”诊断体系，具备系统排查能力；  
-2. 本轮快速实验主要用于验证流程可运行；  
-3. 若要做趋势诊断，建议最小增量设置：`num_train_epochs=1.0`、`eval_steps=10`、`logging_steps=2`，确保有足够日志点再判定稳定性。
-
----
-
-#### 1.4.3 P6：DPO β Ablation（0.05 / 0.1 / 0.2）
-
-在同一偏好数据、同一训练设置下，仅改变 `pref_beta` 做 3 组对照（V100S）：
-
-##### 实验结果汇总
-
-| pref_beta | train_loss | eval_loss | eval_rewards/accuracies | eval_rewards/margins | 结论 |
-|---:|---:|---:|---:|---:|---|
-| 0.05 | 0.1451 | 0.1048 | 1.0000 | 2.8953 | 稳定，但偏好强度中等 |
-| 0.10 | **0.1079** | **0.0976** | **1.0000** | 4.4497 | **最优（当前默认）** |
-| 0.20 | 0.1313 | 0.2145 | 0.8333 | 6.3224 | 过激，泛化变差风险高 |
-
-
-##### 结论（β 选择依据）
-1. `beta=0.1` 取得最低 `eval_loss`，且 `accuracies=1.0`，综合最优；  
-2. `beta=0.05` 更保守稳定，但效果弱于 `0.1`；  
-3. `beta=0.2` 虽然 margin 更大，但 `eval_loss` 恶化、`accuracies` 下降至 0.8333，说明偏好更新过激，不作为默认配置。  
+## Table of Contents
 
-因此，后续 DPO 默认采用：**`pref_beta=0.1`**。
-#### 1.4.4 小结
-- **超参选择**：通过 P4 对照，采用 `learning_rate=2e-4`。  
-- **诊断能力**：通过 P5 手册与脚本，形成标准化排查闭环，而非经验式试错。
-
+- [Features](#features)
+- [Benchmark](#benchmark)
+- [Changelog](#changelog)
+- [Supported Models](#supported-models)
+- [Supported Training Approaches](#supported-training-approaches)
+- [Provided Datasets](#provided-datasets)
+- [Requirement](#requirement)
+- [Getting Started](#getting-started)
+  - [Installation](#installation)
+  - [Data Preparation](#data-preparation)
+  - [Quickstart](#quickstart)
+  - [Fine-Tuning with LLaMA Board GUI](#fine-tuning-with-llama-board-gui-powered-by-gradio)
+  - [Build Docker](#build-docker)
+  - [Deploy with OpenAI-style API and vLLM](#deploy-with-openai-style-api-and-vllm)
+  - [Download from ModelScope Hub](#download-from-modelscope-hub)
+  - [Download from Modelers Hub](#download-from-modelers-hub)
+  - [Use W&B Logger](#use-wb-logger)
+  - [Use SwanLab Logger](#use-swanlab-logger)
+- [Projects using LLaMA Factory](#projects-using-llama-factory)
+- [License](#license)
+- [Citation](#citation)
+- [Acknowledgement](#acknowledgement)
 
-### 1.5 灾难性遗忘与能力边界
+## Features
 
-#### 1.5.1 评估目标
-回答两个核心问题：  
-1. 法律能力是否提升？  
-2. 通用能力是否明显退化（灾难性遗忘）？
-
-#### 1.5.2 评测设计
-- 通用域：`ceval`（Average / STEM / Social Sciences / Humanities / Other）
-- 法律专项：10 个法律 case，统计“关键点覆盖率”
-- 对比对象：Base（原始模型） vs SFT vs DPO
+- **Various models**: LLaMA, LLaVA, Mistral, Mixtral-MoE, Qwen, Qwen2-VL, DeepSeek, Yi, Gemma, ChatGLM, Phi, etc.
+- **Integrated methods**: (Continuous) pre-training, (multimodal) supervised fine-tuning, reward modeling, PPO, DPO, KTO, ORPO, etc.
+- **Scalable resources**: 16-bit full-tuning, freeze-tuning, LoRA and 2/3/4/5/6/8-bit QLoRA via AQLM/AWQ/GPTQ/LLM.int8/HQQ/EETQ.
+- **Advanced algorithms**: [GaLore](https://github.com/jiaweizzhao/GaLore), [BAdam](https://github.com/Ledzy/BAdam), [APOLLO](https://github.com/zhuhanqing/APOLLO), [Adam-mini](https://github.com/zyushun/Adam-mini), [Muon](https://github.com/KellerJordan/Muon), DoRA, LongLoRA, LLaMA Pro, Mixture-of-Depths, LoRA+, LoftQ and PiSSA.
+- **Practical tricks**: [FlashAttention-2](https://github.com/Dao-AILab/flash-attention), [Unsloth](https://github.com/unslothai/unsloth), [Liger Kernel](https://github.com/linkedin/Liger-Kernel), RoPE scaling, NEFTune and rsLoRA.
+- **Wide tasks**: Multi-turn dialogue, tool using, image understanding, visual grounding, video recognition, audio understanding, etc.
+- **Experiment monitors**: LlamaBoard, TensorBoard, Wandb, MLflow, [SwanLab](https://github.com/SwanHubX/SwanLab), etc.
+- **Faster inference**: OpenAI-style API, Gradio UI and CLI with [vLLM worker](https://github.com/vllm-project/vllm) or [SGLang worker](https://github.com/sgl-project/sglang).
 
-#### 1.5.3 通用能力评测结果（ceval）
+### Day-N Support for Fine-Tuning Cutting-Edge Models
 
-| 维度 | Base | SFT | DPO | SFT相对Base | DPO相对Base |
-|---|---:|---:|---:|---:|---:|
-| Average | 78.83 | **79.42** | 79.05 | +0.59 | +0.22 |
-| STEM | 72.79 | 73.26 | **73.72** | +0.47 | +0.93 |
-| Social Sciences | 85.82 | **86.18** | 85.82 | +0.36 | 0.00 |
-| Humanities | 78.21 | **79.38** | 78.60 | +1.17 | +0.39 |
-| Other | **80.99** | 81.51 | 80.47 | +0.52 | -0.52 |
+| Support Date | Model Name                                                   |
+| ------------ | ------------------------------------------------------------ |
+| Day 0        | Qwen3 / Qwen2.5-VL / Gemma 3 / InternLM 3 / MiniCPM-o-2.6    |
+| Day 1        | Llama 3 / GLM-4 / Mistral Small / PaliGemma2 / Llama 4       |
 
-**结论（通用能力）**：未出现灾难性遗忘。  
-SFT 在各维度整体小幅提升；DPO 相比 Base 总体仍持平略升（Average +0.22）。
+## Benchmark
 
-#### 1.5.4 法律专项评测结果（10 case）
-
-| 模型 | 平均关键点覆盖率 |
-|---|---:|
-| Base | 9.9% |
-| SFT | 13.3% |
-| DPO | **16.7%** |
+Compared to ChatGLM's [P-Tuning](https://github.com/THUDM/ChatGLM2-6B/tree/main/ptuning), LLaMA Factory's LoRA tuning offers up to **3.7 times faster** training speed with a better Rouge score on the advertising text generation task. By leveraging 4-bit quantization technique, LLaMA Factory's QLoRA further improves the efficiency regarding the GPU memory.
 
-- SFT 相对 Base：**+3.4 个百分点**
-- DPO 相对 SFT：**+3.4 个百分点**
-- DPO 相对 Base：**+6.8 个百分点**
+![benchmark](assets/benchmark.svg)
 
-说明：当前“关键点覆盖率”采用精确字符串匹配，可能低估等价表述（如“劳动合同法四十六条” vs “《劳动合同法》第四十六条”）。结合人工案例对比，DPO 在法条引用准确性与回答完整度上有实质提升。
+<details><summary>Definitions</summary>
 
-#### 1.5.5 结论：能力提升与退化折中
+- **Training Speed**: the number of training samples processed per second during the training. (bs=4, cutoff_len=1024)
+- **Rouge Score**: Rouge-2 score on the development set of the [advertising text generation](https://aclanthology.org/D19-1321.pdf) task. (bs=4, cutoff_len=1024)
+- **GPU Memory**: Peak GPU memory usage in 4-bit quantized training. (bs=1, cutoff_len=1024)
+- We adopt `pre_seq_len=128` for ChatGLM's P-Tuning and `lora_rank=32` for LLaMA Factory's LoRA tuning.
 
-1. **通用能力侧**：Base→SFT→DPO 未出现明显退化，满足“可部署”底线；  
-2. **法律能力侧**：SFT 已提升法律风格，DPO 进一步提升关键点覆盖；  
-3. **综合判断**：在通用能力基本不变前提下，领域能力持续提升，链路有效。
+</details>
 
-#### 1.5.6 原理解释（为什么未明显遗忘）
-- LoRA 仅训练少量参数（<1%），基座权重冻结，通用知识保留较好；  
-- 领域数据规模较小（500级），对通用分布冲击有限；  
-- 基座模型能力较强，低量微调不易造成大幅退化。
+## Changelog
 
-#### 1.5.7 能力提升—退化折中曲线
+[25/04/28] We supported fine-tuning the **[Qwen3](https://qwenlm.github.io/blog/qwen3/)** model family.
 
-![Capability Trade-off (General vs Legal)](image1)
+[25/04/21] We supported the **[Muon](https://github.com/KellerJordan/Muon)** optimizer. See [examples](examples/README.md) for usage. Thank [@tianshijing](https://github.com/tianshijing)'s PR.
 
-图示结论：
-- 通用能力（ceval avg）在 Base/SFT/DPO 间基本稳定（约 79 附近小幅波动）；  
-- 法律专项覆盖率呈单调上升：`9.9 → 13.3 → 16.7`；  
-- 说明本项目在“通用能力基本不损失”的前提下，实现了稳定的领域能力增益。
+[25/04/16] We supported fine-tuning the **[InternVL3](https://huggingface.co/OpenGVLab/InternVL3-8B)** model. See [PR #7258](https://github.com/hiyouga/LLaMA-Factory/pull/7258) to get started.
 
----
+[25/04/14] We supported fine-tuning the **[GLM-Z1](https://huggingface.co/THUDM/GLM-Z1-9B-0414)** and **[Kimi-VL](https://huggingface.co/moonshotai/Kimi-VL-A3B-Instruct)** models.
 
-## 2. 标准化评测体系（核心主线）
+[25/04/06] We supported fine-tuning the **[Llama 4](https://ai.meta.com/blog/llama-4-multimodal-intelligence/)** model. See [PR #7611](https://github.com/hiyouga/LLaMA-Factory/pull/7611) to get started.
 
-### 2.1 评测目录结构与 Pipeline（已落地）
+<details><summary>Full Changelog</summary>
 
-目录结构：
-- `eval/golden_cases.json`
-- `eval/auto_eval.py`
-- `eval/metrics.py`
-- `eval/regression_check.py`
-- `eval/run_eval_pipeline.sh`
-- `eval/runs/`
-- `eval/reports/`
+[25/03/31] We supported fine-tuning the **[Qwen2.5 Omni](https://qwenlm.github.io/blog/qwen2.5-omni/)** model. See [PR #7537](https://github.com/hiyouga/LLaMA-Factory/pull/7537) to get started.
 
-标准流程：
-1. 固定 Golden 用例集（同题同口径）
-2. 对 `Base / SFT / DPO` 生成答案
-3. 计算统一指标（law_accuracy / coverage / repetition / avg_len / hallucination）
-4. 产出回归报告并触发告警（regression alert）
+[25/03/15] We supported **[SGLang](https://github.com/sgl-project/sglang)** as inference backend. Try `infer_backend: sglang` to accelerate inference.
 
-执行命令：
-```bash
-bash eval/run_eval_pipeline.sh
-```
+[25/03/12] We supported fine-tuning the **[Gemma 3](https://huggingface.co/blog/gemma3)** model.
 
----
+[25/02/24] Announcing **[EasyR1](https://github.com/hiyouga/EasyR1)**, an efficient, scalable and multi-modality RL training framework for efficient GRPO training.
 
-### 2.2 指标体系（已实现）
+[25/02/11] We supported saving the **[Ollama](https://github.com/ollama/ollama)** modelfile when exporting the model checkpoints. See [examples](examples/README.md) for usage.
 
-当前统一指标如下：
+[25/02/05] We supported fine-tuning the **[Qwen2-Audio](Qwen/Qwen2-Audio-7B-Instruct)** and **[MiniCPM-o-2.6](https://huggingface.co/openbmb/MiniCPM-o-2_6)** on audio understanding tasks.
 
-1. **法条准确率（law_accuracy）**  
-   - 定义：法律依据点命中比例（按规则归一化匹配）
-   - 目标：越高越好
+[25/01/31] We supported fine-tuning the **[DeepSeek-R1](https://huggingface.co/deepseek-ai/DeepSeek-R1)** and **[Qwen2.5-VL](https://huggingface.co/Qwen/Qwen2.5-VL-7B-Instruct)** models.
 
-2. **关键点覆盖率（coverage）**  
-   - 定义：gold key points 命中比例
-   - 目标：越高越好
+[25/01/15] We supported **[APOLLO](https://arxiv.org/abs/2412.05270)** optimizer. See [examples](examples/README.md) for usage.
 
-3. **重复率（repetition_rate）**  
-   - 定义：回答内部重复程度
-   - 目标：越低越好
+[25/01/14] We supported fine-tuning the **[MiniCPM-o-2.6](https://huggingface.co/openbmb/MiniCPM-o-2_6)** and **[MiniCPM-V-2.6](https://huggingface.co/openbmb/MiniCPM-V-2_6)** models. Thank [@BUAADreamer](https://github.com/BUAADreamer)'s PR.
 
-4. **平均长度（avg_len）**  
-   - 定义：回答长度（当前用字符近似）
-   - 目标：用于监控“过短漏点”或“过长啰嗦”
+[25/01/14] We supported fine-tuning the **[InternLM 3](https://huggingface.co/collections/internlm/)** models. Thank [@hhaAndroid](https://github.com/hhaAndroid)'s PR.
 
-5. **幻觉次数（hallucination_count）**  
-   - 定义：命中禁用断言（must_not）条目数
-   - 目标：越低越好
+[25/01/10] We supported fine-tuning the **[Phi-4](https://huggingface.co/microsoft/phi-4)** model.
 
----
+[24/12/21] We supported using **[SwanLab](https://github.com/SwanHubX/SwanLab)** for experiment tracking and visualization. See [this section](#use-swanlab-logger) for details.
 
-### 2.3 Golden Eval 机制（已跑通）
+[24/11/27] We supported fine-tuning the **[Skywork-o1](https://huggingface.co/Skywork/Skywork-o1-Open-Llama-3.1-8B)** model and the **[OpenO1](https://huggingface.co/datasets/O1-OPEN/OpenO1-SFT)** dataset.
 
-#### 2.3.1 用例设计原则
-- 覆盖训练集内 + 训练集外问题
-- 覆盖劳动/合同/民法/程序/消费者等类别
-- 每题包含：
-  - `key_points`（应出现）
-  - `must_not`（不应出现）
+[24/10/09] We supported downloading pre-trained models and datasets from the **[Modelers Hub](https://modelers.cn/models)**. See [this tutorial](#download-from-modelers-hub) for usage.
 
-#### 2.3.2 版本回归测试
-每次模型更新（SFT 或 DPO）都做三方对比：
-- Base（基座）
-- SFT（监督微调）
-- DPO（偏好对齐）
+[24/09/19] We supported fine-tuning the **[Qwen2.5](https://qwenlm.github.io/blog/qwen2.5/)** models.
 
-并固定推理参数，保证可比性（例如 `do_sample=false`）。
+[24/08/30] We supported fine-tuning the **[Qwen2-VL](https://qwenlm.github.io/blog/qwen2-vl/)** models. Thank [@simonJJJ](https://github.com/simonJJJ)'s PR.
 
-#### 2.3.3 退化告警规则（当前）
-- coverage 下降超过 2pct：告警
-- law_accuracy 下降超过 2pct：告警
-- repetition_rate 上升超过 5pct：告警
-- hallucination_count 增加超过 2：告警
+[24/08/27] We supported **[Liger Kernel](https://github.com/linkedin/Liger-Kernel)**. Try `enable_liger_kernel: true` for efficient training.
 
----
+[24/08/09] We supported **[Adam-mini](https://github.com/zyushun/Adam-mini)** optimizer. See [examples](examples/README.md) for usage. Thank [@relic-yuexi](https://github.com/relic-yuexi)'s PR.
 
-### 2.4 自动化报告与结果追踪（已完成首轮）
+[24/07/04] We supported [contamination-free packed training](https://github.com/MeetKai/functionary/tree/main/functionary/train/packing). Use `neat_packing: true` to activate it. Thank [@chuan298](https://github.com/chuan298)'s PR.
 
-#### 2.4.1 本轮回归结果（run_20260426_131632）
+[24/06/16] We supported **[PiSSA](https://arxiv.org/abs/2404.02948)** algorithm. See [examples](examples/README.md) for usage.
 
-| Model | law_accuracy | coverage | repetition_rate | avg_len | hallucination_count |
-|---|---:|---:|---:|---:|---:|
-| base | 0.850 | 0.433 | 0.000 | 545.0 | 0 |
-| sft | 0.850 | 0.267 | 0.000 | 308.5 | 0 |
-| dpo | 1.000 | 0.300 | 0.000 | 650.9 | 0 |
+[24/06/07] We supported fine-tuning the **[Qwen2](https://qwenlm.github.io/blog/qwen2/)** and **[GLM-4](https://github.com/THUDM/GLM-4)** models.
 
-告警：
-- `[ALERT] SFT vs BASE: coverage drop > 2pct`
+[24/05/26] We supported **[SimPO](https://arxiv.org/abs/2405.14734)** algorithm for preference learning. See [examples](examples/README.md) for usage.
 
-#### 2.4.2 结果分析（本轮）
+[24/05/20] We supported fine-tuning the **PaliGemma** series models. Note that the PaliGemma models are pre-trained models, you need to fine-tune them with `paligemma` template for chat completion.
 
-**现象**：
-1. SFT 相比 Base：`law_accuracy` 持平（0.85），但 `coverage` 显著下降（0.433 → 0.267）；
-2. DPO 相比 SFT：`law_accuracy` 提升到 1.0，但 `coverage` 仅回升到 0.300，仍低于 Base；
-3. `hallucination_count=0`、`repetition=0`，说明问题主要不在“幻觉/重复”，而在“覆盖不足或评分口径偏严”。
+[24/05/18] We supported **[KTO](https://arxiv.org/abs/2402.01306)** algorithm for preference learning. See [examples](examples/README.md) for usage.
 
-**可能原因**：
-1. **SFT 输出更短**（avg_len 545 → 308.5），导致关键点漏答，直接拉低 coverage；  
-2. **评测 key_points 偏字符串精确**，对等价表达容错不足，可能低估真实覆盖；  
-3. **SFT 数据偏“简洁回答风格”**，造成“更精炼但少点”的结构性偏移；  
-4. DPO 虽提升法律依据准确性，但在“多点展开覆盖”上尚未充分恢复。
+[24/05/14] We supported training and inference on the Ascend NPU devices. Check [installation](#installation) section for details.
 
-#### 2.4.3 改进动作（下一轮）
+[24/04/26] We supported fine-tuning the **LLaVA-1.5** multimodal LLMs. See [examples](examples/README.md) for usage.
 
-1. **评测侧修正（优先）**  
-   - 引入 normalized match + 同义写法词典（法条别名、数字写法统一）
-   - 报告同时输出 strict / normalized 两套覆盖率
+[24/04/22] We provided a **[Colab notebook](https://colab.research.google.com/drive/1eRTPn37ltBbYsISy9Aw2NuI2Aq5CQrD9?usp=sharing)** for fine-tuning the Llama-3 model on a free T4 GPU. Two Llama-3-derived models fine-tuned using LLaMA Factory are available at Hugging Face, check [Llama3-8B-Chinese-Chat](https://huggingface.co/shenzhi-wang/Llama3-8B-Chinese-Chat) and [Llama3-Chinese](https://huggingface.co/zhichen/Llama3-Chinese) for details.
 
-2. **训练侧修正（SFT）**  
-   - 在 SFT 数据中提升“多要点完整回答”样本占比
-   - 在 prompt 模板中明确“请分点覆盖要素+依据+维权路径”
+[24/04/21] We supported **[Mixture-of-Depths](https://arxiv.org/abs/2404.02258)** according to [AstraMindAI's implementation](https://github.com/astramind-ai/Mixture-of-depths). See [examples](examples/README.md) for usage.
 
-3. **DPO 偏好侧修正**  
-   - 在 chosen 样本中加入“覆盖完整度”偏好信号
-   - hard-negative 增加“少关键点但法条正确”的 rejected 样本，专门打击漏点
+[24/04/16] We supported **[BAdam](https://arxiv.org/abs/2404.02827)** optimizer. See [examples](examples/README.md) for usage.
 
-4. **回归门禁**  
-   - 将 `coverage` 设为发布前硬门槛（不允许低于 Base 超过阈值）
+[24/04/16] We supported **[unsloth](https://github.com/unslothai/unsloth)**'s long-sequence training (Llama-2-7B-56k within 24GB). It achieves **117%** speed and **50%** memory compared with FlashAttention-2, more benchmarks can be found in [this page](https://github.com/hiyouga/LLaMA-Factory/wiki/Performance-comparison).
 
-#### 2.4.4 小结
-本项目评测体系已实现“**自动评测—告警—定位—修复**”闭环。  
-本轮发现了真实退化信号（SFT coverage 下滑），并已形成针对性的训练与评测双侧改进方案。
+[24/03/31] We supported **[ORPO](https://arxiv.org/abs/2403.07691)**. See [examples](examples/README.md) for usage.
 
----
+[24/03/21] Our paper "[LlamaFactory: Unified Efficient Fine-Tuning of 100+ Language Models](https://arxiv.org/abs/2403.13372)" is available at arXiv!
 
-## 3. 推理优化与部署（核心主线）
+[24/03/20] We supported **FSDP+QLoRA** that fine-tunes a 70B model on 2x24GB GPUs. See [examples](examples/README.md) for usage.
 
-### 3.1 vLLM 部署架构（已完成）
+[24/03/13] We supported **[LoRA+](https://arxiv.org/abs/2402.12354)**. See [examples](examples/README.md) for usage.
 
-#### 3.1.1 服务化部署流程
-本项目部署链路：
+[24/03/07] We supported **[GaLore](https://arxiv.org/abs/2403.03507)** optimizer. See [examples](examples/README.md) for usage.
 
-`Merged DPO Model (FP16) -> vLLM Serve -> OpenAI-Compatible API -> 压测与调优 -> 生产参数固化`
+[24/03/07] We integrated **[vLLM](https://github.com/vllm-project/vllm)** for faster and concurrent inference. Try `infer_backend: vllm` to enjoy **270%** inference speed.
 
-部署模型路径：
-- `/root/autodl-tmp/merged_models/law_qa_dpo`
+[24/02/28] We supported weight-decomposed LoRA (**[DoRA](https://arxiv.org/abs/2402.09353)**). Try `use_dora: true` to activate DoRA training.
 
-启动命令（当前可用稳定版本）：
-```bash
-vllm serve /root/autodl-tmp/merged_models/law_qa_dpo \
-  --served-model-name "law-expert-fp16" \
-  --host 0.0.0.0 \
-  --port 6006 \
-  --dtype float16 \
-  --max-model-len 2048 \
-  --gpu-memory-utilization 0.90 \
-  --enable-prefix-caching
-```
+[24/02/15] We supported **block expansion** proposed by [LLaMA Pro](https://github.com/TencentARC/LLaMA-Pro). See [examples](examples/README.md) for usage.
 
-#### 3.1.2 关键配置项说明
-- `--served-model-name`：API 中 `model` 字段名称  
-- `--host/--port`：服务监听地址（AutoDL 对外端口使用 6006）  
-- `--dtype float16`：当前硬件与模型组合下最稳配置  
-- `--max-model-len`：单请求最大上下文长度，影响 KV Cache 占用  
-- `--gpu-memory-utilization`：KV Cache Pool 显存占比  
-- `--enable-prefix-caching`：开启前缀共享，降低重复 prefill 成本
+[24/02/05] Qwen1.5 (Qwen2 beta version) series models are supported in LLaMA-Factory. Check this [blog post](https://qwenlm.github.io/blog/qwen1.5/) for details.
 
-#### 3.1.3 API 验证
-- `curl` 调用 `/v1/chat/completions` 成功  
-- Python OpenAI 客户端（改 `base_url`）调用成功  
-- 流式输出可用，服务可持续响应
+[24/01/18] We supported **agent tuning** for most models, equipping model with tool using abilities by fine-tuning with `dataset: glaive_toolcall_en`.
 
----
+[23/12/23] We supported **[unsloth](https://github.com/unslothai/unsloth)**'s implementation to boost LoRA tuning for the LLaMA, Mistral and Yi models. Try `use_unsloth: true` argument to activate unsloth patch. It achieves **170%** speed in our benchmark, check [this page](https://github.com/hiyouga/LLaMA-Factory/wiki/Performance-comparison) for details.
 
-### 3.2 机制原理（面试高频 + 实测对应）
+[23/12/12] We supported fine-tuning the latest MoE model **[Mixtral 8x7B](https://huggingface.co/mistralai/Mixtral-8x7B-v0.1)** in our framework. See hardware requirement [here](#hardware-requirement).
 
-#### 3.2.1 KV Cache 为什么减少计算
-自回归生成时，历史 token 的 K/V 不再重复计算，仅计算新 token 的 K/V，因此计算复杂度从“重复重算历史”转向“增量计算”，吞吐提升明显。
+[23/12/01] We supported downloading pre-trained models and datasets from the **[ModelScope Hub](https://modelscope.cn/models)**. See [this tutorial](#download-from-modelscope-hub) for usage.
 
-#### 3.2.2 为什么显存占用会增加
-KV Cache 以空间换时间：每个请求会持续占用缓存块，序列越长、并发越高，占用越大。  
-因此高并发下可能出现排队，表现为 TTFT 抬升。
+[23/10/21] We supported **[NEFTune](https://arxiv.org/abs/2310.05914)** trick for fine-tuning. Try `neftune_noise_alpha: 5` argument to activate NEFTune.
 
-#### 3.2.3 PagedAttention 与 Block Table 映射机制
-vLLM 通过分页化 KV Cache 管理（非连续物理映射）降低碎片，支持动态请求插入与释放，是 Continuous Batching 的基础。
+[23/09/27] We supported **$S^2$-Attn** proposed by [LongLoRA](https://github.com/dvlab-research/LongLoRA) for the LLaMA models. Try `shift_attn: true` argument to enable shift short attention.
 
-#### 3.2.4 TTFT 抖动/暴涨的原因链路
-典型链路：  
-`并发上升 -> KV Cache 压力上升 -> 请求排队 -> prefill 延后 -> TTFT/P99 抖动或暴涨`
+[23/09/23] We integrated MMLU, C-Eval and CMMLU benchmarks in this repo. See [examples](examples/README.md) for usage.
 
-你在历史基线中观测到：  
-- c=8 时 TTFT P99 从毫秒级突增到秒级（9.4s）  
-属于典型资源争用拐点信号。
+[23/09/10] We supported **[FlashAttention-2](https://github.com/Dao-AILab/flash-attention)**. Try `flash_attn: fa2` argument to enable FlashAttention-2 if you are using RTX4090, A100 or H100 GPUs.
 
-#### 3.2.5 max_num_seqs 对 TPS 的影响
-`max_num_seqs` 决定 Continuous Batching 的 batch 上限，直接影响 GPU 利用率。  
-本项目中它是最敏感参数：调优后吞吐提升最显著（见 3.3）。
+[23/08/12] We supported **RoPE scaling** to extend the context length of the LLaMA models. Try `rope_scaling: linear` argument in training and `rope_scaling: dynamic` argument at inference to extrapolate the position embeddings.
 
----
+[23/08/11] We supported **[DPO training](https://arxiv.org/abs/2305.18290)** for instruction-tuned models. See [examples](examples/README.md) for usage.
 
-### 3.3 性能压测与调优（已完成）
+[23/07/31] We supported **dataset streaming**. Try `streaming: true` and `max_steps: 10000` arguments to load your dataset in streaming mode.
 
-#### 3.3.1 压测方法与场景
-- 工具：OpenAI 兼容脚本压测 + Locust 持续压测  
-- 维度：并发（c=1/4/8/16）、TTFT、TPS、P99 延迟、失败率  
-- 口径：固定模型、固定提示模板、固定 `max_tokens`
+[23/07/29] We released two instruction-tuned 13B models at Hugging Face. See these Hugging Face Repos ([LLaMA-2](https://huggingface.co/hiyouga/Llama-2-Chinese-13b-chat) / [Baichuan](https://huggingface.co/hiyouga/Baichuan-13B-sft)) for details.
 
----
+[23/07/18] We developed an **all-in-one Web UI** for training, evaluation and inference. Try `train_web.py` to fine-tune models in your Web browser. Thank [@KanadeSiina](https://github.com/KanadeSiina) and [@codemayq](https://github.com/codemayq) for their efforts in the development.
 
-#### 3.3.2 结果模板（实测填充）
+[23/07/09] We released **[FastEdit](https://github.com/hiyouga/FastEdit)** ⚡🩹, an easy-to-use package for editing the factual knowledge of large language models efficiently. Please follow [FastEdit](https://github.com/hiyouga/FastEdit) if you are interested.
 
-##### A) 最新并发阶梯压测（FP16，max_tokens=128）
+[23/06/29] We provided a **reproducible example** of training a chat model using instruction-following datasets, see [Baichuan-7B-sft](https://huggingface.co/hiyouga/Baichuan-7B-sft) for details.
 
-| 并发 | 请求数 | TPS (tokens/s) | TTFT P99 (ms) | Latency P99 (ms) | Latency Avg (ms) | Avg Tokens |
-|---:|---:|---:|---:|---:|---:|---:|
-| 1 | 20 | 48.58 | 39.5 | 2588.8 | 2598.8 | 126.2 |
-| 4 | 20 | 161.73 | 286.3 | 3295.1 | 3119.8 | 126.2 |
-| 8 | 20 | 260.73 | 319.5 | 3413.2 | 3256.3 | 126.2 |
-| 16 | 40 | 486.64 | 358.3 | 3727.6 | 3512.1 | 126.3 |
+[23/06/22] We aligned the [demo API](src/api_demo.py) with the [OpenAI's](https://platform.openai.com/docs/api-reference/chat) format where you can insert the fine-tuned model in **arbitrary ChatGPT-based applications**.
 
-##### B) 长输出场景（FP16，c=8，max_tokens=256）
-- TPS：263.04
-- TTFT P99：440.8ms
-- Latency P99：6692.0ms
-- Latency Avg：6241.1ms
-- Avg Tokens：244.4
+[23/06/03] We supported quantized training and inference (aka **[QLoRA](https://github.com/artidoro/qlora)**). See [examples](examples/README.md) for usage.
 
-解读：`max_tokens` 增大后，总延迟上升符合预期；吞吐保持较高，说明系统在中高并发下仍稳定。
+</details>
 
----
+> [!NOTE]
+> If you cannot use the latest feature, please pull the latest code and install LLaMA-Factory again.
 
-#### 3.3.3 关键参数调优案例（结合历史完整实验）
+## Supported Models
 
-##### 1) `gpu-memory-utilization`
-- 0.85 vs 0.95：TPS 基本不变（约 9.5），P99差异极小  
-- 结论：在 V100S-32GB + 7B FP16（显存充裕）场景影响有限
+| Model                                                             | Model size                       | Template            |
+| ----------------------------------------------------------------- | -------------------------------- | ------------------- |
+| [Baichuan 2](https://huggingface.co/baichuan-inc)                 | 7B/13B                           | baichuan2           |
+| [BLOOM/BLOOMZ](https://huggingface.co/bigscience)                 | 560M/1.1B/1.7B/3B/7.1B/176B      | -                   |
+| [ChatGLM3](https://huggingface.co/THUDM)                          | 6B                               | chatglm3            |
+| [Command R](https://huggingface.co/CohereForAI)                   | 35B/104B                         | cohere              |
+| [DeepSeek (Code/MoE)](https://huggingface.co/deepseek-ai)         | 7B/16B/67B/236B                  | deepseek            |
+| [DeepSeek 2.5/3](https://huggingface.co/deepseek-ai)              | 236B/671B                        | deepseek3           |
+| [DeepSeek R1 (Distill)](https://huggingface.co/deepseek-ai)       | 1.5B/7B/8B/14B/32B/70B/671B      | deepseekr1          |
+| [Falcon](https://huggingface.co/tiiuae)                           | 7B/11B/40B/180B                  | falcon              |
+| [Gemma/Gemma 2/CodeGemma](https://huggingface.co/google)          | 2B/7B/9B/27B                     | gemma               |
+| [Gemma 3](https://huggingface.co/google)                          | 1B/4B/12B/27B                    | gemma3/gemma (1B)   |
+| [GLM-4/GLM-4-0414/GLM-Z1](https://huggingface.co/THUDM)           | 9B/32B                           | glm4/glmz1          |
+| [GPT-2](https://huggingface.co/openai-community)                  | 0.1B/0.4B/0.8B/1.5B              | -                   |
+| [Granite 3.0-3.3](https://huggingface.co/ibm-granite)             | 1B/2B/3B/8B                      | granite3            |
+| [Hunyuan](https://huggingface.co/tencent/)                        | 7B                               | hunyuan             |
+| [Index](https://huggingface.co/IndexTeam)                         | 1.9B                             | index               |
+| [InternLM 2-3](https://huggingface.co/internlm)                   | 7B/8B/20B                        | intern2             |
+| [InternVL 2.5-3](https://huggingface.co/OpenGVLab)\*              | 1B/2B/8B/14B/38B/78B             | intern_vl           |
+| [Kimi-VL](https://huggingface.co/moonshotai)                      | 16B                              | kimi_vl             |
+| [Llama](https://github.com/facebookresearch/llama)                | 7B/13B/33B/65B                   | -                   |
+| [Llama 2](https://huggingface.co/meta-llama)                      | 7B/13B/70B                       | llama2              |
+| [Llama 3-3.3](https://huggingface.co/meta-llama)                  | 1B/3B/8B/70B                     | llama3              |
+| [Llama 4](https://huggingface.co/meta-llama)                      | 109B/402B                        | llama4              |
+| [Llama 3.2 Vision](https://huggingface.co/meta-llama)             | 11B/90B                          | mllama              |
+| [LLaVA-1.5](https://huggingface.co/llava-hf)                      | 7B/13B                           | llava               |
+| [LLaVA-NeXT](https://huggingface.co/llava-hf)                     | 7B/8B/13B/34B/72B/110B           | llava_next          |
+| [LLaVA-NeXT-Video](https://huggingface.co/llava-hf)               | 7B/34B                           | llava_next_video    |
+| [MiMo](https://huggingface.co/XiaomiMiMo)                         | 7B                               | mimo                |
+| [MiniCPM](https://huggingface.co/openbmb)                         | 1B/2B/4B                         | cpm/cpm3            |
+| [MiniCPM-o-2.6/MiniCPM-V-2.6](https://huggingface.co/openbmb)     | 8B                               | minicpm_o/minicpm_v |
+| [Ministral/Mistral-Nemo](https://huggingface.co/mistralai)        | 8B/12B                           | ministral           |
+| [Mistral/Mixtral](https://huggingface.co/mistralai)               | 7B/8x7B/8x22B                    | mistral             |
+| [Mistral Small](https://huggingface.co/mistralai)                 | 24B                              | mistral_small       |
+| [OLMo](https://huggingface.co/allenai)                            | 1B/7B                            | -                   |
+| [PaliGemma/PaliGemma2](https://huggingface.co/google)             | 3B/10B/28B                       | paligemma           |
+| [Phi-1.5/Phi-2](https://huggingface.co/microsoft)                 | 1.3B/2.7B                        | -                   |
+| [Phi-3/Phi-3.5](https://huggingface.co/microsoft)                 | 4B/14B                           | phi                 |
+| [Phi-3-small](https://huggingface.co/microsoft)                   | 7B                               | phi_small           |
+| [Phi-4](https://huggingface.co/microsoft)                         | 14B                              | phi4                |
+| [Pixtral](https://huggingface.co/mistralai)                       | 12B                              | pixtral             |
+| [Qwen (1-2.5) (Code/Math/MoE/QwQ)](https://huggingface.co/Qwen)   | 0.5B/1.5B/3B/7B/14B/32B/72B/110B | qwen                |
+| [Qwen3 (MoE)](https://huggingface.co/Qwen)                        | 0.6B/1.7B/4B/8B/14B/32B/235B     | qwen3               |
+| [Qwen2-Audio](https://huggingface.co/Qwen)                        | 7B                               | qwen2_audio         |
+| [Qwen2.5-Omni](https://huggingface.co/Qwen)\*                     | 3B/7B                            | qwen2_omni          |
+| [Qwen2-VL/Qwen2.5-VL/QVQ](https://huggingface.co/Qwen)            | 2B/3B/7B/32B/72B                 | qwen2_vl            |
+| [Seed Coder](https://huggingface.co/ByteDance-Seed)               | 8B                               | seed_coder          |
+| [Skywork o1](https://huggingface.co/Skywork)                      | 8B                               | skywork_o1          |
+| [StarCoder 2](https://huggingface.co/bigcode)                     | 3B/7B/15B                        | -                   |
+| [TeleChat2](https://huggingface.co/Tele-AI)                       | 3B/7B/35B/115B                   | telechat2           |
+| [XVERSE](https://huggingface.co/xverse)                           | 7B/13B/65B                       | xverse              |
+| [Yi/Yi-1.5 (Code)](https://huggingface.co/01-ai)                  | 1.5B/6B/9B/34B                   | yi                  |
+| [Yi-VL](https://huggingface.co/01-ai)                             | 6B/34B                           | yi_vl               |
+| [Yuan 2](https://huggingface.co/IEITYuan)                         | 2B/51B/102B                      | yuan                |
 
-##### 2) `max-model-len`
-- 2048 vs 4096：TPS/P99 基本无差异  
-- 结论：当前法律 QA 实际长度远低于上限，改该参数收益不明显
+> [!NOTE]
+> For the "base" models, the `template` argument can be chosen from `default`, `alpaca`, `vicuna` etc. But make sure to use the **corresponding template** for the "instruct/chat" models.
+>
+> Remember to use the **SAME** template in training and inference.
+>
+> \*: You should install the `transformers` from main branch and use `DISABLE_VERSION_CHECK=1` to skip version check.
+>
+> \*\*: You need to install a specific version of `transformers` to use the corresponding model.
 
-##### 3) `enable-prefix-caching`
-- 冷启动 TTFT 均值 74.2ms -> 命中后 67.0ms（-9.7%）  
-- 结论：短 system prompt 场景收益有限；长前缀（RAG/ToB）收益更大
+Please refer to [constants.py](src/llamafactory/extras/constants.py) for a full list of models we supported.
 
-##### 4) `max_num_seqs`（本次最关键）
-- c=8：TPS 从 8.4 提升到约 42.6（历史调优结果）  
-- c=16：系统 TPS 可达约 66.2（历史调优结果）  
-- 结论：这是当前最优先调优杠杆，直接决定吞吐上限
+You also can add a custom chat template to [template.py](src/llamafactory/data/template.py).
 
----
+## Supported Training Approaches
 
-#### 3.3.4 稳定性压测（Locust）
-60 秒持续压测结果：
-- 5/10/20 用户失败率均为 0%
-- P99 延迟线性增长，无崩溃
-- 20 并发下服务稳定，可满足当前 SLA 目标
+| Approach               |     Full-tuning    |    Freeze-tuning   |       LoRA         |       QLoRA        |
+| ---------------------- | ------------------ | ------------------ | ------------------ | ------------------ |
+| Pre-Training           | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| Supervised Fine-Tuning | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| Reward Modeling        | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| PPO Training           | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| DPO Training           | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| KTO Training           | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| ORPO Training          | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| SimPO Training         | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |
 
----
+> [!TIP]
+> The implementation details of PPO can be found in [this blog](https://newfacade.github.io/notes-on-reinforcement-learning/17-ppo-trl.html).
 
-#### 3.3.5 推荐生产配置（当前）
+## Provided Datasets
+
+<details><summary>Pre-training datasets</summary>
+
+- [Wiki Demo (en)](data/wiki_demo.txt)
+- [RefinedWeb (en)](https://huggingface.co/datasets/tiiuae/falcon-refinedweb)
+- [RedPajama V2 (en)](https://huggingface.co/datasets/togethercomputer/RedPajama-Data-V2)
+- [Wikipedia (en)](https://huggingface.co/datasets/olm/olm-wikipedia-20221220)
+- [Wikipedia (zh)](https://huggingface.co/datasets/pleisto/wikipedia-cn-20230720-filtered)
+- [Pile (en)](https://huggingface.co/datasets/EleutherAI/pile)
+- [SkyPile (zh)](https://huggingface.co/datasets/Skywork/SkyPile-150B)
+- [FineWeb (en)](https://huggingface.co/datasets/HuggingFaceFW/fineweb)
+- [FineWeb-Edu (en)](https://huggingface.co/datasets/HuggingFaceFW/fineweb-edu)
+- [The Stack (en)](https://huggingface.co/datasets/bigcode/the-stack)
+- [StarCoder (en)](https://huggingface.co/datasets/bigcode/starcoderdata)
+
+</details>
+
+<details><summary>Supervised fine-tuning datasets</summary>
+
+- [Identity (en&zh)](data/identity.json)
+- [Stanford Alpaca (en)](https://github.com/tatsu-lab/stanford_alpaca)
+- [Stanford Alpaca (zh)](https://github.com/ymcui/Chinese-LLaMA-Alpaca-3)
+- [Alpaca GPT4 (en&zh)](https://github.com/Instruction-Tuning-with-GPT-4/GPT-4-LLM)
+- [Glaive Function Calling V2 (en&zh)](https://huggingface.co/datasets/glaiveai/glaive-function-calling-v2)
+- [LIMA (en)](https://huggingface.co/datasets/GAIR/lima)
+- [Guanaco Dataset (multilingual)](https://huggingface.co/datasets/JosephusCheung/GuanacoDataset)
+- [BELLE 2M (zh)](https://huggingface.co/datasets/BelleGroup/train_2M_CN)
+- [BELLE 1M (zh)](https://huggingface.co/datasets/BelleGroup/train_1M_CN)
+- [BELLE 0.5M (zh)](https://huggingface.co/datasets/BelleGroup/train_0.5M_CN)
+- [BELLE Dialogue 0.4M (zh)](https://huggingface.co/datasets/BelleGroup/generated_chat_0.4M)
+- [BELLE School Math 0.25M (zh)](https://huggingface.co/datasets/BelleGroup/school_math_0.25M)
+- [BELLE Multiturn Chat 0.8M (zh)](https://huggingface.co/datasets/BelleGroup/multiturn_chat_0.8M)
+- [UltraChat (en)](https://github.com/thunlp/UltraChat)
+- [OpenPlatypus (en)](https://huggingface.co/datasets/garage-bAInd/Open-Platypus)
+- [CodeAlpaca 20k (en)](https://huggingface.co/datasets/sahil2801/CodeAlpaca-20k)
+- [Alpaca CoT (multilingual)](https://huggingface.co/datasets/QingyiSi/Alpaca-CoT)
+- [OpenOrca (en)](https://huggingface.co/datasets/Open-Orca/OpenOrca)
+- [SlimOrca (en)](https://huggingface.co/datasets/Open-Orca/SlimOrca)
+- [MathInstruct (en)](https://huggingface.co/datasets/TIGER-Lab/MathInstruct)
+- [Firefly 1.1M (zh)](https://huggingface.co/datasets/YeungNLP/firefly-train-1.1M)
+- [Wiki QA (en)](https://huggingface.co/datasets/wiki_qa)
+- [Web QA (zh)](https://huggingface.co/datasets/suolyer/webqa)
+- [WebNovel (zh)](https://huggingface.co/datasets/zxbsmk/webnovel_cn)
+- [Nectar (en)](https://huggingface.co/datasets/berkeley-nest/Nectar)
+- [deepctrl (en&zh)](https://www.modelscope.cn/datasets/deepctrl/deepctrl-sft-data)
+- [Advertise Generating (zh)](https://huggingface.co/datasets/HasturOfficial/adgen)
+- [ShareGPT Hyperfiltered (en)](https://huggingface.co/datasets/totally-not-an-llm/sharegpt-hyperfiltered-3k)
+- [ShareGPT4 (en&zh)](https://huggingface.co/datasets/shibing624/sharegpt_gpt4)
+- [UltraChat 200k (en)](https://huggingface.co/datasets/HuggingFaceH4/ultrachat_200k)
+- [AgentInstruct (en)](https://huggingface.co/datasets/THUDM/AgentInstruct)
+- [LMSYS Chat 1M (en)](https://huggingface.co/datasets/lmsys/lmsys-chat-1m)
+- [Evol Instruct V2 (en)](https://huggingface.co/datasets/WizardLM/WizardLM_evol_instruct_V2_196k)
+- [Cosmopedia (en)](https://huggingface.co/datasets/HuggingFaceTB/cosmopedia)
+- [STEM (zh)](https://huggingface.co/datasets/hfl/stem_zh_instruction)
+- [Ruozhiba (zh)](https://huggingface.co/datasets/hfl/ruozhiba_gpt4_turbo)
+- [Neo-sft (zh)](https://huggingface.co/datasets/m-a-p/neo_sft_phase2)
+- [Magpie-Pro-300K-Filtered (en)](https://huggingface.co/datasets/Magpie-Align/Magpie-Pro-300K-Filtered)
+- [Magpie-ultra-v0.1 (en)](https://huggingface.co/datasets/argilla/magpie-ultra-v0.1)
+- [WebInstructSub (en)](https://huggingface.co/datasets/TIGER-Lab/WebInstructSub)
+- [OpenO1-SFT (en&zh)](https://huggingface.co/datasets/O1-OPEN/OpenO1-SFT)
+- [Open-Thoughts (en)](https://huggingface.co/datasets/open-thoughts/OpenThoughts-114k)
+- [Open-R1-Math (en)](https://huggingface.co/datasets/open-r1/OpenR1-Math-220k)
+- [Chinese-DeepSeek-R1-Distill (zh)](https://huggingface.co/datasets/Congliu/Chinese-DeepSeek-R1-Distill-data-110k-SFT)
+- [LLaVA mixed (en&zh)](https://huggingface.co/datasets/BUAADreamer/llava-en-zh-300k)
+- [Pokemon-gpt4o-captions (en&zh)](https://huggingface.co/datasets/jugg1024/pokemon-gpt4o-captions)
+- [Open Assistant (de)](https://huggingface.co/datasets/mayflowergmbh/oasst_de)
+- [Dolly 15k (de)](https://huggingface.co/datasets/mayflowergmbh/dolly-15k_de)
+- [Alpaca GPT4 (de)](https://huggingface.co/datasets/mayflowergmbh/alpaca-gpt4_de)
+- [OpenSchnabeltier (de)](https://huggingface.co/datasets/mayflowergmbh/openschnabeltier_de)
+- [Evol Instruct (de)](https://huggingface.co/datasets/mayflowergmbh/evol-instruct_de)
+- [Dolphin (de)](https://huggingface.co/datasets/mayflowergmbh/dolphin_de)
+- [Booksum (de)](https://huggingface.co/datasets/mayflowergmbh/booksum_de)
+- [Airoboros (de)](https://huggingface.co/datasets/mayflowergmbh/airoboros-3.0_de)
+- [Ultrachat (de)](https://huggingface.co/datasets/mayflowergmbh/ultra-chat_de)
+
+</details>
+
+<details><summary>Preference datasets</summary>
+
+- [DPO mixed (en&zh)](https://huggingface.co/datasets/hiyouga/DPO-En-Zh-20k)
+- [UltraFeedback (en)](https://huggingface.co/datasets/HuggingFaceH4/ultrafeedback_binarized)
+- [COIG-P (en&zh)](https://huggingface.co/datasets/m-a-p/COIG-P)
+- [RLHF-V (en)](https://huggingface.co/datasets/openbmb/RLHF-V-Dataset)
+- [VLFeedback (en)](https://huggingface.co/datasets/Zhihui/VLFeedback)
+- [RLAIF-V (en)](https://huggingface.co/datasets/openbmb/RLAIF-V-Dataset)
+- [Orca DPO Pairs (en)](https://huggingface.co/datasets/Intel/orca_dpo_pairs)
+- [HH-RLHF (en)](https://huggingface.co/datasets/Anthropic/hh-rlhf)
+- [Nectar (en)](https://huggingface.co/datasets/berkeley-nest/Nectar)
+- [Orca DPO (de)](https://huggingface.co/datasets/mayflowergmbh/intel_orca_dpo_pairs_de)
+- [KTO mixed (en)](https://huggingface.co/datasets/argilla/kto-mix-15k)
+
+</details>
+
+Some datasets require confirmation before using them, so we recommend logging in with your Hugging Face account using these commands.
 
 ```bash
-vllm serve /root/autodl-tmp/merged_models/law_qa_dpo \
-  --served-model-name "law-expert-fp16" \
-  --host 0.0.0.0 \
-  --port 6006 \
-  --dtype float16 \
-  --max-model-len 2048 \
-  --gpu-memory-utilization 0.90 \
-  --enable-prefix-caching
+pip install --upgrade huggingface_hub
+huggingface-cli login
 ```
 
-建议：
-- 中高并发业务下，优先调 `max_num_seqs`
-- 若 TTFT 抬升明显，优先排查 KV Cache 竞争与排队
-- 长 prompt 业务默认开启 prefix caching
+## Requirement
 
+| Mandatory    | Minimum | Recommend |
+| ------------ | ------- | --------- |
+| python       | 3.9     | 3.10      |
+| torch        | 2.0.0   | 2.6.0     |
+| transformers | 4.45.0  | 4.50.0    |
+| datasets     | 2.16.0  | 3.2.0     |
+| accelerate   | 0.34.0  | 1.2.1     |
+| peft         | 0.14.0  | 0.15.1    |
+| trl          | 0.8.6   | 0.9.6     |
 
----
+| Optional     | Minimum | Recommend |
+| ------------ | ------- | --------- |
+| CUDA         | 11.6    | 12.2      |
+| deepspeed    | 0.10.0  | 0.16.4    |
+| bitsandbytes | 0.39.0  | 0.43.1    |
+| vllm         | 0.4.3   | 0.8.2     |
+| flash-attn   | 2.5.6   | 2.7.2     |
 
-## 4. RAG 增强（辅助主线）
+### Hardware Requirement
 
-> 定位：RAG 是对 SFT/DPO 的外部知识补充层，不替代微调主线。  
-> 目标：在模型“会说”的基础上，让回答“有依据、可追溯、可更新”。
+\* *estimated*
 
----
+| Method                          | Bits |   7B  |  14B  |  30B  |   70B  |   `x`B  |
+| ------------------------------- | ---- | ----- | ----- | ----- | ------ | ------- |
+| Full (`bf16` or `fp16`)         |  32  | 120GB | 240GB | 600GB | 1200GB | `18x`GB |
+| Full (`pure_bf16`)              |  16  |  60GB | 120GB | 300GB |  600GB |  `8x`GB |
+| Freeze/LoRA/GaLore/APOLLO/BAdam |  16  |  16GB |  32GB |  64GB |  160GB |  `2x`GB |
+| QLoRA                           |   8  |  10GB |  20GB |  40GB |   80GB |   `x`GB |
+| QLoRA                           |   4  |   6GB |  12GB |  24GB |   48GB | `x/2`GB |
+| QLoRA                           |   2  |   4GB |   8GB |  16GB |   24GB | `x/4`GB |
 
-### 4.1 检索链路设计
+## Getting Started
 
-#### 4.1.1 Dense 检索方案（当前主线）
-本项目基础 RAG 链路：
+### Installation
 
-1. **离线构建**
-   - 法律文本清洗与切块（优先语义边界）
-   - Embedding 向量化（bge-small-zh / bge-base-zh）
-   - 向量索引构建（FAISS，后续扩展 Chroma 元数据过滤）
+> [!IMPORTANT]
+> Installation is mandatory.
 
-2. **在线检索**
-   - 用户问题向量化
-   - 向量检索 `top-k=3`
-   - 组装增强 Prompt：`System + 检索法条 + 用户问题`
-   - vLLM 生成回答
-
-代码结构（已实现）：
-- `rag/01_prepare_corpus.py`
-- `rag/02_build_index.py`
-- `rag/03_retriever.py`
-- `rag/04_rag_pipeline.py`
-- `rag/05_evaluate_rag.py`
-
-语料与索引：
-- 语料目录：`rag/law_corpus/`
-- 索引目录：`rag/vector_store/faiss.index` + `chunks_meta.json`
-
----
-
-#### 4.1.2 数据切块与索引构建（关键工程点）
-
-切块策略对检索质量影响显著，本项目对比了三类策略：
-
-| 策略 | 特点 | 结果结论 |
-|---|---|---|
-| 按条款切分（regex） | 法条边界清晰，但长度波动大 | 中等 |
-| 固定字数切分 | 实现简单，但易破坏法律语义 | 最差 |
-| 递归语义切分（推荐） | 条款优先，段落/句子兜底 | 最优 |
-
-递归切分参数（当前推荐）：
-- `chunk_size=300`
-- `chunk_overlap=50`
-- 分隔符优先级：条款边界 > 段落 > 换行 > 句号 > 字符兜底
-
-实验结论（切分对检索）：
-- 递归语义切分 Precision@3 最优（81.2%）
-- 固定长度切分在法律条文场景退化明显（语义割裂）
-
----
-
-#### 4.1.3 从“基础版”到“进阶版”链路演化
-
-- **V2（基础）**：bge-small + FAISS  
-- **V3（当前最佳）**：优化切分 + bge-base Dense  
-- **V4/V5（探索）**：Hybrid(BM25+Dense)+RRF+Reranker(+Citation)
-
-当前结论：**V3 是综合最优配置**（分数与延迟平衡最好）。
-
----
-
-### 4.2 关键影响因素
-
-#### 4.2.1 chunk_size 对召回/生成质量的影响
-
-核心规律：
-1. `chunk` 过小：语义碎片化，法条上下文断裂，生成时易漏关键点  
-2. `chunk` 过大：主题混杂，向量相似度不够“尖锐”，噪声召回增加  
-3. 法律文本对边界极敏感，应优先“条款语义完整性”而非固定长度
-
-本项目经验参数：
-- `chunk_size=300, overlap=50` 在法律咨询语料上表现最稳
-
----
-
-#### 4.2.2 噪声与误召回问题分析（有实证）
-
-RAG 改善并非单调，存在“检索噪声反伤”：
-
-- 提升案例：
-  - TC001：+13.7（准确注入《劳动合同法》关键条款）
-  - TC010：+11.0（补充工伤条例信息）
-- 退步案例：
-  - TC003：-16.7
-  - TC009：-14.7（名誉权问题误召回劳动法内容）
-
-问题本质：
-- Dense 检索存在“词汇陷阱”  
-  例：查询含“公司/同事”时，劳动法文档被错误拉近
-- 错误检索结果 **比不检索更差**（会向 LLM 注入错误上下文）
-
-可行缓解：
-1. 元数据过滤（law_type）先做类别预过滤  
-2. 降低 top-k 或重排注入顺序，减少中段信息淹没  
-3. 引入查询分类/路由，避免不适配检索器污染候选集
-
----
-
-#### 4.2.3 与 SFT/DPO 的协同边界（必须明确）
-
-职责分工：
-
-- **SFT/DPO 负责**：  
-  - 回答风格、结构化表达、法律咨询语气  
-  - 偏好对齐（详细准确 > 简短模糊）
-
-- **RAG 负责**：  
-  - 外部知识注入（法条原文、更新条款）  
-  - 降低“凭记忆编造法条”的风险  
-  - 提供可追溯依据
-
-协同结论：
-1. 微调让模型“会回答法律问题”；RAG让模型“有依据地回答”  
-2. 当问题超出模型参数记忆边界时，RAG 提升明显  
-3. 当模型已熟悉且检索不准时，RAG 可能退步（噪声注入）
-
-一句话总结：  
-**SFT/DPO 决定“怎么说”，RAG 决定“说什么依据”；RAG 上限取决于检索精度，而不是生成模型本身。**
-
----
-
-### 4.3 当前阶段结论（可复述）
-
-1. 简单 RAG 相比纯微调在本项目平均总分有提升（+0.9），但收益不稳定；  
-2. 在当前法律咨询语料上，`V3（Dense + bge-base + 递归语义切分）` 综合最优（准确率/延迟平衡最佳）；  
-3. RAG 的主要瓶颈是“召回质量”，不是“生成能力”；  
-4. 后续优化优先级：**检索精度 > 生成调参**（先解决误召回，再讨论生成风格）。
-
----
-
-## 5. 轻量级 Agent（可选加分）
-
-### 5.1 目标与边界
-- 目标：验证 `LLM + Tool` 架构理解与工程落地能力  
-- 边界：仅做单工具 function calling，不实现复杂 Planner/多工具编排
-
-### 5.2 最小实现
-
-#### 5.2.1 Tool：`search_law()`
-- 输入：`query`, `top_k`
-- 功能：从本地法律向量库检索 Top-K 条法条片段
-- 实现文件：`agent_minimal/search_tool.py`
-
-#### 5.2.2 Function Calling 流程
-1. 用户问题进入 Agent  
-2. LLM 判断是否调用 `search_law`  
-3. 执行工具检索并返回结构化结果  
-4. 将工具结果注入对话上下文  
-5. LLM 输出最终回答（结论 + 法律依据 + 维权建议）
-
-实现文件：
-- `agent_minimal/agent_fc.py`
-- `agent_minimal/run_demo.py`
-
-#### 5.2.3 调用轨迹示例（可追溯）
-轨迹文件：`agent_minimal/logs/trace_*.json`
-
-标准轨迹结构：
-`用户问题 -> tool_call(search_law) -> tool_result(top-k法条) -> final_answer`
-
-#### 5.2.4 自动验证
-- 脚本：`agent_minimal/eval_agent_trace.py`
-- 验证项：
-  - 是否触发工具调用
-  - 是否执行工具并返回结果
-  - 是否产出最终回答
-
-结论：最小 Agent 方案已完成，验证了 function calling 的闭环能力，可作为后续多工具 Agent 的基础。
----
-
-## 6. 面试向“深水区”问答（项目护城河）
-### 6.1 SFT 深问
-- 为什么 500 条可能有效？
-- train_on_prompt 的影响？
-- template 不一致为什么是 distribution shift？
-
-### 6.2 DPO 深问
-- DPO 与 RLHF 的差异
-- reference 的作用
-- β 的实际含义与调参逻辑
-
-### 6.3 推理优化深问
-- KV Cache / PagedAttention / TTFT / TPS 机制链路
-
----
-
-## 7. 实验复现指南
-
-### 7.1 环境准备
-1. 进入项目目录并检查 GPU：
 ```bash
-cd ~/autodl-tmp/LLaMA-Factory
-nvidia-smi
+git clone --depth 1 https://github.com/hiyouga/LLaMA-Factory.git
+cd LLaMA-Factory
+pip install -e ".[torch,metrics]"
 ```
-2. 确保可调用训练命令：
+
+Extra dependencies available: torch, torch-npu, metrics, deepspeed, liger-kernel, bitsandbytes, hqq, eetq, gptq, aqlm, vllm, sglang, galore, apollo, badam, adam-mini, qwen, minicpm_v, modelscope, openmind, swanlab, quality
+
+> [!TIP]
+> Use `pip install --no-deps -e .` to resolve package conflicts.
+
+<details><summary>Setting up a virtual environment with <b>uv</b></summary>
+
+Create an isolated Python environment with [uv](https://github.com/astral-sh/uv):
+
 ```bash
-which llamafactory-cli
+uv sync --extra torch --extra metrics --prerelease=allow
 ```
-3. 建议使用与你训练一致的 CUDA/transformers 环境，避免版本漂移。
 
-### 7.2 数据准备
-1. 准备清洗后法律问答数据（Alpaca/ShareGPT 任一）。  
-2. 将数据放入 `data/`。  
-3. 在 `dataset_info.json` 注册数据集名称与字段映射。  
-4. 用小样本先做一次 dry-run，确认 dataset 可被正确读取。
+Run LLaMA-Factory in the isolated environment:
 
-### 7.3 SFT 训练（本项目复现实操）
-1. 准备 SFT YAML（核心项）：
-- `model_name_or_path=Qwen2.5-7B-Instruct`
-- `stage=sft`
-- `finetuning_type=lora`
-- `quantization_bit=4`
-- `template=qwen`
-- `learning_rate=1e-4`
-- `per_device_train_batch_size=2`
-- `gradient_accumulation_steps=8`
-- `cutoff_len=2048`
-
-2. 启动训练：
 ```bash
-llamafactory-cli train my_configs/<your_sft_yaml>.yaml
+uv run --prerelease=allow llamafactory-cli train examples/train_lora/llama3_lora_pretrain.yaml
 ```
 
-3. 训练完成后检查目录（示例）：
-- `tmp/saves/law_qa_qlora_sft/`
-  - `adapter_config.json`
-  - `adapter_model.safetensors`
-  - `training_loss.png`
-  - `trainer_log.jsonl`
-  - `all_results.json`
+</details>
 
-4. 提取关键指标（本次记录）：
-- `train_loss=1.1283`
-- `eval_loss=1.1833`
-- `epoch=2.9217`
+<details><summary>For Windows users</summary>
 
-5. 对话验证（同题对比）：
-- 原始模型回答
-- 加载 adapter 后回答  
-观察：法条引用是否更具体、结构是否更清晰、措辞是否更法律咨询化。
-### 7.4 DPO 训练
+#### Install PyTorch
 
-#### 7.4.1 前置条件
-- 已完成 SFT，且有可用 SFT adapter（作为 DPO 起点）
-- 已准备偏好数据（字段：`instruction`, `input`, `chosen`, `rejected`）
-- `dataset_info.json` 已注册该数据集并设置：`"ranking": true`
+You need to manually install the GPU version of PyTorch on the Windows platform. Please refer to the [official website](https://pytorch.org/get-started/locally/) and the following command to install PyTorch with CUDA support:
 
-#### 7.4.2 推荐配置（最小可复现）
-- `stage: dpo`
-- `finetuning_type: lora`
-- `create_new_adapter: true`（在 SFT adapter 基础上新建 DPO adapter）
-- `learning_rate: 5e-6`
-- `pref_beta: 0.1`
-- `pref_loss: sigmoid`
-- `template: qwen`
-
-#### 7.4.3 运行命令
 ```bash
-llamafactory-cli train my_configs/<your_dpo_yaml>.yaml
+pip uninstall torch torchvision torchaudio
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
+python -c "import torch; print(torch.cuda.is_available())"
 ```
 
-#### 7.4.4 关键产物检查
-- DPO adapter 目录（新建，不覆盖 SFT adapter）
-- `all_results.json` / `trainer_state.json`
-- 训练日志中的关键指标：
-  - `loss`
-  - `rewards/margins`
-  - `rewards/accuracies`
-  - `rewards/chosen`
-  - `rewards/rejected`
+If you see `True` then you have successfully installed PyTorch with CUDA support.
 
-#### 7.4.5 本项目复现结果（基准）
-- `train_loss=0.1079`
-- `eval_loss=0.0976`
-- `eval_rewards/margins=4.4497`
-- `eval_rewards/accuracies=1.0`
-- `train_runtime≈567.7s`
+Try `dataloader_num_workers: 0` if you encounter `Can't pickle local object` error.
 
-#### 7.4.6 判定标准
-- 成功信号：
-  1. loss 下降并稳定  
-  2. rewards/margins 持续为正并上升  
-  3. 三方对比中 DPO 在法律问答质量上优于 SFT  
-- 风险信号：
-  1. accuracies 过快到 1.0（小数据记忆风险）  
-  2. 输出重复或过度冗长（偏好过拟合）
+#### Install BitsAndBytes
 
-#### 7.4.7 对比验证（必须）
-用同一组问题做三方对比：`Base vs SFT vs DPO`，至少覆盖：
-- 训练分布内问题（看精修效果）
-- 分布外问题（看泛化与副作用）
-### 7.5 评测与回归测试
+If you want to enable the quantized LoRA (QLoRA) on the Windows platform, you need to install a pre-built version of `bitsandbytes` library, which supports CUDA 11.1 to 12.2, please select the appropriate [release version](https://github.com/jllllll/bitsandbytes-windows-webui/releases/tag/wheels) based on your CUDA version.
 
-本项目评测采用“能力评测 + 回归告警”双轨机制。
-
-#### 7.5.1 回归评测流程
-1. 固定 Golden 用例与评分脚本（同题同口径）  
-2. 对 `Base / SFT / DPO` 分别生成答案  
-3. 计算统一指标：
-   - law_accuracy
-   - coverage
-   - repetition_rate
-   - avg_len
-   - hallucination_count
-4. 自动产出回归报告（含告警）
-
-#### 7.5.2 本轮回归结果（run_20260426_131632）
-| Model | law_accuracy | coverage | repetition_rate | avg_len | hallucination_count |
-|---|---:|---:|---:|---:|---:|
-| base | 0.850 | 0.433 | 0.000 | 545.0 | 0 |
-| sft | 0.850 | 0.267 | 0.000 | 308.5 | 0 |
-| dpo | 1.000 | 0.300 | 0.000 | 650.9 | 0 |
-
-告警：
-- `[ALERT] SFT vs BASE: coverage drop > 2pct`
-
-#### 7.5.3 回归结论
-1. DPO 在法条准确率上优于 Base/SFT（1.000）；  
-2. SFT 覆盖率出现回归（0.433 → 0.267），需在数据与评测口径上进一步修正；  
-3. 当前无重复率与幻觉告警（均为 0），主要问题集中在“关键点覆盖不足”。
-
----
-
-### 7.6 部署与压测
-
-#### 7.6.1 服务化部署（已落地）
-部署模型：`/root/autodl-tmp/merged_models/law_qa_dpo`  
-部署框架：vLLM（OpenAI-Compatible API）
-
-启动命令：
 ```bash
-vllm serve /root/autodl-tmp/merged_models/law_qa_dpo \
-  --served-model-name "law-expert-fp16" \
-  --host 0.0.0.0 \
-  --port 6006 \
-  --dtype float16 \
-  --max-model-len 2048 \
-  --gpu-memory-utilization 0.90 \
-  --enable-prefix-caching
+pip install https://github.com/jllllll/bitsandbytes-windows-webui/releases/download/wheels/bitsandbytes-0.41.2.post2-py3-none-win_amd64.whl
 ```
 
-#### 7.6.2 并发压测结果（FP16，最新）
-| 并发 | 请求数 | TPS (tokens/s) | TTFT P99 (ms) | Latency P99 (ms) | Latency Avg (ms) | Avg Tokens |
-|---:|---:|---:|---:|---:|---:|---:|
-| 1 | 20 | 48.58 | 39.5 | 2588.8 | 2598.8 | 126.2 |
-| 4 | 20 | 161.73 | 286.3 | 3295.1 | 3119.8 | 126.2 |
-| 8 | 20 | 260.73 | 319.5 | 3413.2 | 3256.3 | 126.2 |
-| 16 | 40 | 486.64 | 358.3 | 3727.6 | 3512.1 | 126.3 |
+#### Install Flash Attention-2
 
-补充（`c=8, max_tokens=256`）：
-- TPS: 263.04
-- TTFT P99: 440.8ms
-- Latency P99: 6692.0ms
-- Avg Tokens: 244.4
+To enable FlashAttention-2 on the Windows platform, please use the script from [flash-attention-windows-wheel](https://huggingface.co/lldacing/flash-attention-windows-wheel) to compile and install it by yourself.
 
-#### 7.6.3 参数调优结论（本轮）
-- `max_num_seqs`：最关键吞吐参数（历史实验中可带来 5x 级提升）  
-- `gpu_memory_utilization`：在 V100S-32GB + 7B FP16 场景影响较小  
-- `max_model_len`：2048 与 4096 差异不明显（当前业务输入长度较短）  
-- `enable-prefix-caching`：在短前缀场景有小幅收益，建议默认开启
+</details>
 
----
-## 附录 A：关键配置清单
+<details><summary>For Ascend NPU users</summary>
 
-### A.1 训练配置（SFT）
+To install LLaMA Factory on Ascend NPU devices, please upgrade Python to version 3.10 or higher and specify extra dependencies: `pip install -e ".[torch-npu,metrics]"`. Additionally, you need to install the **[Ascend CANN Toolkit and Kernels](https://www.hiascend.com/developer/download/community/result?module=cann)**. Please follow the [installation tutorial](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/600alphaX/softwareinstall/instg/atlasdeploy_03_0031.html) or use the following commands:
+
+```bash
+# replace the url according to your CANN version and devices
+# install CANN Toolkit
+wget https://ascend-repo.obs.cn-east-2.myhuaweicloud.com/Milan-ASL/Milan-ASL%20V100R001C20SPC702/Ascend-cann-toolkit_8.0.0.alpha002_linux-"$(uname -i)".run
+bash Ascend-cann-toolkit_8.0.0.alpha002_linux-"$(uname -i)".run --install
+
+# install CANN Kernels
+wget https://ascend-repo.obs.cn-east-2.myhuaweicloud.com/Milan-ASL/Milan-ASL%20V100R001C20SPC702/Ascend-cann-kernels-910b_8.0.0.alpha002_linux-"$(uname -i)".run
+bash Ascend-cann-kernels-910b_8.0.0.alpha002_linux-"$(uname -i)".run --install
+
+# set env variables
+source /usr/local/Ascend/ascend-toolkit/set_env.sh
+```
+
+| Requirement  | Minimum | Recommend      |
+| ------------ | ------- | -------------- |
+| CANN         | 8.0.RC1 | 8.0.0.alpha002 |
+| torch        | 2.1.0   | 2.4.0          |
+| torch-npu    | 2.1.0   | 2.4.0.post2    |
+| deepspeed    | 0.13.2  | 0.13.2         |
+| vllm-ascend  | -       | 0.7.3          |
+
+Remember to use `ASCEND_RT_VISIBLE_DEVICES` instead of `CUDA_VISIBLE_DEVICES` to specify the device to use.
+
+If you cannot infer model on NPU devices, try setting `do_sample: false` in the configurations.
+
+Download the pre-built Docker images: [32GB](http://mirrors.cn-central-221.ovaijisuan.com/detail/130.html) | [64GB](http://mirrors.cn-central-221.ovaijisuan.com/detail/131.html)
+
+#### Install BitsAndBytes
+
+To use QLoRA based on bitsandbytes on Ascend NPU, please follow these 3 steps:
+
+1. Manually compile bitsandbytes: Refer to [the installation documentation](https://huggingface.co/docs/bitsandbytes/installation?backend=Ascend+NPU&platform=Ascend+NPU) for the NPU version of bitsandbytes to complete the compilation and installation. The compilation requires a cmake version of at least 3.22.1 and a g++ version of at least 12.x.
+
+```bash
+# Install bitsandbytes from source
+# Clone bitsandbytes repo, Ascend NPU backend is currently enabled on multi-backend-refactor branch
+git clone -b multi-backend-refactor https://github.com/bitsandbytes-foundation/bitsandbytes.git
+cd bitsandbytes/
+
+# Install dependencies
+pip install -r requirements-dev.txt
+
+# Install the dependencies for the compilation tools. Note that the commands for this step may vary depending on the operating system. The following are provided for reference
+apt-get install -y build-essential cmake
+
+# Compile & install  
+cmake -DCOMPUTE_BACKEND=npu -S .
+make
+pip install .
+```
+
+2. Install transformers from the main branch.
+
+```bash
+git clone -b main https://github.com/huggingface/transformers.git
+cd transformers
+pip install .
+```
+
+3. Set `double_quantization: false` in the configuration. You can refer to the [example](examples/train_qlora/llama3_lora_sft_bnb_npu.yaml).
+
+</details>
+
+### Data Preparation
+
+Please refer to [data/README.md](data/README.md) for checking the details about the format of dataset files. You can use datasets on HuggingFace / ModelScope / Modelers hub, load the dataset in local disk, or specify a path to s3/gcs cloud storage.
+
+> [!NOTE]
+> Please update `data/dataset_info.json` to use your custom dataset.
+
+You can also use **[Easy Dataset](https://github.com/ConardLi/easy-dataset)** or **[GraphGen](https://github.com/open-sciencelab/GraphGen)** to create synthetic data for fine-tuning.
+
+### Quickstart
+
+Use the following 3 commands to run LoRA **fine-tuning**, **inference** and **merging** of the Llama3-8B-Instruct model, respectively.
+
+```bash
+llamafactory-cli train examples/train_lora/llama3_lora_sft.yaml
+llamafactory-cli chat examples/inference/llama3_lora_sft.yaml
+llamafactory-cli export examples/merge_lora/llama3_lora_sft.yaml
+```
+
+See [examples/README.md](examples/README.md) for advanced usage (including distributed training).
+
+> [!TIP]
+> Use `llamafactory-cli help` to show help information.
+>
+> Read [FAQs](https://github.com/hiyouga/LLaMA-Factory/issues/4614) first if you encounter any problems.
+
+### Fine-Tuning with LLaMA Board GUI (powered by [Gradio](https://github.com/gradio-app/gradio))
+
+```bash
+llamafactory-cli webui
+```
+
+### Build Docker
+
+For CUDA users:
+
+```bash
+cd docker/docker-cuda/
+docker compose up -d
+docker compose exec llamafactory bash
+```
+
+For Ascend NPU users:
+
+```bash
+cd docker/docker-npu/
+docker compose up -d
+docker compose exec llamafactory bash
+```
+
+For AMD ROCm users:
+
+```bash
+cd docker/docker-rocm/
+docker compose up -d
+docker compose exec llamafactory bash
+```
+
+<details><summary>Build without Docker Compose</summary>
+
+For CUDA users:
+
+```bash
+docker build -f ./docker/docker-cuda/Dockerfile \
+    --build-arg INSTALL_BNB=false \
+    --build-arg INSTALL_VLLM=false \
+    --build-arg INSTALL_DEEPSPEED=false \
+    --build-arg INSTALL_FLASHATTN=false \
+    --build-arg PIP_INDEX=https://pypi.org/simple \
+    -t llamafactory:latest .
+
+docker run -dit --gpus=all \
+    -v ./hf_cache:/root/.cache/huggingface \
+    -v ./ms_cache:/root/.cache/modelscope \
+    -v ./om_cache:/root/.cache/openmind \
+    -v ./data:/app/data \
+    -v ./output:/app/output \
+    -p 7860:7860 \
+    -p 8000:8000 \
+    --shm-size 16G \
+    --name llamafactory \
+    llamafactory:latest
+
+docker exec -it llamafactory bash
+```
+
+For Ascend NPU users:
+
+```bash
+# Choose docker image upon your environment
+docker build -f ./docker/docker-npu/Dockerfile \
+    --build-arg INSTALL_DEEPSPEED=false \
+    --build-arg PIP_INDEX=https://pypi.org/simple \
+    -t llamafactory:latest .
+
+# Change `device` upon your resources
+docker run -dit \
+    -v ./hf_cache:/root/.cache/huggingface \
+    -v ./ms_cache:/root/.cache/modelscope \
+    -v ./om_cache:/root/.cache/openmind \
+    -v ./data:/app/data \
+    -v ./output:/app/output \
+    -v /usr/local/dcmi:/usr/local/dcmi \
+    -v /usr/local/bin/npu-smi:/usr/local/bin/npu-smi \
+    -v /usr/local/Ascend/driver:/usr/local/Ascend/driver \
+    -v /etc/ascend_install.info:/etc/ascend_install.info \
+    -p 7860:7860 \
+    -p 8000:8000 \
+    --device /dev/davinci0 \
+    --device /dev/davinci_manager \
+    --device /dev/devmm_svm \
+    --device /dev/hisi_hdc \
+    --shm-size 16G \
+    --name llamafactory \
+    llamafactory:latest
+
+docker exec -it llamafactory bash
+```
+
+For AMD ROCm users:
+
+```bash
+docker build -f ./docker/docker-rocm/Dockerfile \
+    --build-arg INSTALL_BNB=false \
+    --build-arg INSTALL_VLLM=false \
+    --build-arg INSTALL_DEEPSPEED=false \
+    --build-arg INSTALL_FLASHATTN=false \
+    --build-arg PIP_INDEX=https://pypi.org/simple \
+    -t llamafactory:latest .
+
+docker run -dit \
+    -v ./hf_cache:/root/.cache/huggingface \
+    -v ./ms_cache:/root/.cache/modelscope \
+    -v ./om_cache:/root/.cache/openmind \
+    -v ./data:/app/data \
+    -v ./output:/app/output \
+    -v ./saves:/app/saves \
+    -p 7860:7860 \
+    -p 8000:8000 \
+    --device /dev/kfd \
+    --device /dev/dri \
+    --shm-size 16G \
+    --name llamafactory \
+    llamafactory:latest
+
+docker exec -it llamafactory bash
+```
+
+</details>
+
+<details><summary>Details about volume</summary>
+
+- `hf_cache`: Utilize Hugging Face cache on the host machine. Reassignable if a cache already exists in a different directory.
+- `ms_cache`: Similar to Hugging Face cache but for ModelScope users.
+- `om_cache`: Similar to Hugging Face cache but for Modelers users.
+- `data`: Place datasets on this dir of the host machine so that they can be selected on LLaMA Board GUI.
+- `output`: Set export dir to this location so that the merged result can be accessed directly on the host machine.
+
+</details>
+
+### Deploy with OpenAI-style API and vLLM
+
+```bash
+API_PORT=8000 llamafactory-cli api examples/inference/llama3.yaml infer_backend=vllm vllm_enforce_eager=true
+```
+
+> [!TIP]
+> Visit [this page](https://platform.openai.com/docs/api-reference/chat/create) for API document.
+>
+> Examples: [Image understanding](scripts/api_example/test_image.py) | [Function calling](scripts/api_example/test_toolcall.py)
+
+### Download from ModelScope Hub
+
+If you have trouble with downloading models and datasets from Hugging Face, you can use ModelScope.
+
+```bash
+export USE_MODELSCOPE_HUB=1 # `set USE_MODELSCOPE_HUB=1` for Windows
+```
+
+Train the model by specifying a model ID of the ModelScope Hub as the `model_name_or_path`. You can find a full list of model IDs at [ModelScope Hub](https://modelscope.cn/models), e.g., `LLM-Research/Meta-Llama-3-8B-Instruct`.
+
+### Download from Modelers Hub
+
+You can also use Modelers Hub to download models and datasets.
+
+```bash
+export USE_OPENMIND_HUB=1 # `set USE_OPENMIND_HUB=1` for Windows
+```
+
+Train the model by specifying a model ID of the Modelers Hub as the `model_name_or_path`. You can find a full list of model IDs at [Modelers Hub](https://modelers.cn/models), e.g., `TeleAI/TeleChat-7B-pt`.
+
+### Use W&B Logger
+
+To use [Weights & Biases](https://wandb.ai) for logging experimental results, you need to add the following arguments to yaml files.
+
 ```yaml
-# 关键参数（摘要）
-model_name_or_path: Qwen2.5-7B-Instruct
-stage: sft
-finetuning_type: lora
-quantization_bit: 4
-template: qwen
-learning_rate: 1e-4
-per_device_train_batch_size: 2
-gradient_accumulation_steps: 8
-cutoff_len: 2048
-bf16: true
+report_to: wandb
+run_name: test_run # optional
 ```
 
-### A.2 训练配置（DPO）
+Set `WANDB_API_KEY` to [your key](https://wandb.ai/authorize) when launching training tasks to log in with your W&B account.
+
+### Use SwanLab Logger
+
+To use [SwanLab](https://github.com/SwanHubX/SwanLab) for logging experimental results, you need to add the following arguments to yaml files.
+
 ```yaml
-# 关键参数（摘要）
-stage: dpo
-finetuning_type: lora
-create_new_adapter: true
-learning_rate: 5e-6
-pref_beta: 0.1
-pref_loss: sigmoid
-template: qwen
+use_swanlab: true
+swanlab_run_name: test_run # optional
 ```
 
-### A.3 评测配置
-- Golden 用例：`eval/golden_cases.json`
-- 评测脚本：`eval/auto_eval.py`
-- 回归告警：`eval/regression_check.py`
-- 一键运行：`eval/run_eval_pipeline.sh`
-- 核心阈值（当前）：
-  - coverage 下降 > 2pct
-  - law_accuracy 下降 > 2pct
-  - repetition_rate 上升 > 5pct
-  - hallucination_count 增加 > 2
+When launching training tasks, you can log in to SwanLab in three ways:
 
-### A.4 推理部署配置（vLLM）
-```bash
-vllm serve /root/autodl-tmp/merged_models/law_qa_dpo \
-  --served-model-name "law-expert-fp16" \
-  --host 0.0.0.0 \
-  --port 6006 \
-  --dtype float16 \
-  --max-model-len 2048 \
-  --gpu-memory-utilization 0.90 \
-  --enable-prefix-caching
+1. Add `swanlab_api_key=<your_api_key>` to the yaml file, and set it to your [API key](https://swanlab.cn/settings).
+2. Set the environment variable `SWANLAB_API_KEY` to your [API key](https://swanlab.cn/settings).
+3. Use the `swanlab login` command to complete the login.
+
+## Projects using LLaMA Factory
+
+If you have a project that should be incorporated, please contact via email or create a pull request.
+
+<details><summary>Click to show</summary>
+
+1. Wang et al. ESRL: Efficient Sampling-based Reinforcement Learning for Sequence Generation. 2023. [[arxiv]](https://arxiv.org/abs/2308.02223)
+1. Yu et al. Open, Closed, or Small Language Models for Text Classification? 2023. [[arxiv]](https://arxiv.org/abs/2308.10092)
+1. Wang et al. UbiPhysio: Support Daily Functioning, Fitness, and Rehabilitation with Action Understanding and Feedback in Natural Language. 2023. [[arxiv]](https://arxiv.org/abs/2308.10526)
+1. Luceri et al. Leveraging Large Language Models to Detect Influence Campaigns in Social Media. 2023. [[arxiv]](https://arxiv.org/abs/2311.07816)
+1. Zhang et al. Alleviating Hallucinations of Large Language Models through Induced Hallucinations. 2023. [[arxiv]](https://arxiv.org/abs/2312.15710)
+1. Wang et al. Know Your Needs Better: Towards Structured Understanding of Marketer Demands with Analogical Reasoning Augmented LLMs. KDD 2024. [[arxiv]](https://arxiv.org/abs/2401.04319)
+1. Wang et al. CANDLE: Iterative Conceptualization and Instantiation Distillation from Large Language Models for Commonsense Reasoning. ACL 2024. [[arxiv]](https://arxiv.org/abs/2401.07286)
+1. Choi et al. FACT-GPT: Fact-Checking Augmentation via Claim Matching with LLMs. 2024. [[arxiv]](https://arxiv.org/abs/2402.05904)
+1. Zhang et al. AutoMathText: Autonomous Data Selection with Language Models for Mathematical Texts. 2024. [[arxiv]](https://arxiv.org/abs/2402.07625)
+1. Lyu et al. KnowTuning: Knowledge-aware Fine-tuning for Large Language Models. 2024. [[arxiv]](https://arxiv.org/abs/2402.11176)
+1. Yang et al. LaCo: Large Language Model Pruning via Layer Collaps. 2024. [[arxiv]](https://arxiv.org/abs/2402.11187)
+1. Bhardwaj et al. Language Models are Homer Simpson! Safety Re-Alignment of Fine-tuned Language Models through Task Arithmetic. 2024. [[arxiv]](https://arxiv.org/abs/2402.11746)
+1. Yang et al. Enhancing Empathetic Response Generation by Augmenting LLMs with Small-scale Empathetic Models. 2024. [[arxiv]](https://arxiv.org/abs/2402.11801)
+1. Yi et al. Generation Meets Verification: Accelerating Large Language Model Inference with Smart Parallel Auto-Correct Decoding. ACL 2024 Findings. [[arxiv]](https://arxiv.org/abs/2402.11809)
+1. Cao et al. Head-wise Shareable Attention for Large Language Models. 2024. [[arxiv]](https://arxiv.org/abs/2402.11819)
+1. Zhang et al. Enhancing Multilingual Capabilities of Large Language Models through Self-Distillation from Resource-Rich Languages. 2024. [[arxiv]](https://arxiv.org/abs/2402.12204)
+1. Kim et al. Efficient and Effective Vocabulary Expansion Towards Multilingual Large Language Models. 2024. [[arxiv]](https://arxiv.org/abs/2402.14714)
+1. Yu et al. KIEval: A Knowledge-grounded Interactive Evaluation Framework for Large Language Models. ACL 2024. [[arxiv]](https://arxiv.org/abs/2402.15043)
+1. Huang et al. Key-Point-Driven Data Synthesis with its Enhancement on Mathematical Reasoning. 2024. [[arxiv]](https://arxiv.org/abs/2403.02333)
+1. Duan et al. Negating Negatives: Alignment without Human Positive Samples via Distributional Dispreference Optimization. 2024. [[arxiv]](https://arxiv.org/abs/2403.03419)
+1. Xie and Schwertfeger. Empowering Robotics with Large Language Models: osmAG Map Comprehension with LLMs. 2024. [[arxiv]](https://arxiv.org/abs/2403.08228)
+1. Wu et al. Large Language Models are Parallel Multilingual Learners. 2024. [[arxiv]](https://arxiv.org/abs/2403.09073)
+1. Zhang et al. EDT: Improving Large Language Models' Generation by Entropy-based Dynamic Temperature Sampling. 2024. [[arxiv]](https://arxiv.org/abs/2403.14541)
+1. Weller et al. FollowIR: Evaluating and Teaching Information Retrieval Models to Follow Instructions. 2024. [[arxiv]](https://arxiv.org/abs/2403.15246)
+1. Hongbin Na. CBT-LLM: A Chinese Large Language Model for Cognitive Behavioral Therapy-based Mental Health Question Answering. COLING 2024. [[arxiv]](https://arxiv.org/abs/2403.16008)
+1. Zan et al. CodeS: Natural Language to Code Repository via Multi-Layer Sketch. 2024. [[arxiv]](https://arxiv.org/abs/2403.16443)
+1. Liu et al. Extensive Self-Contrast Enables Feedback-Free Language Model Alignment. 2024. [[arxiv]](https://arxiv.org/abs/2404.00604)
+1. Luo et al. BAdam: A Memory Efficient Full Parameter Training Method for Large Language Models. 2024. [[arxiv]](https://arxiv.org/abs/2404.02827)
+1. Du et al. Chinese Tiny LLM: Pretraining a Chinese-Centric Large Language Model. 2024. [[arxiv]](https://arxiv.org/abs/2404.04167)
+1. Ma et al. Parameter Efficient Quasi-Orthogonal Fine-Tuning via Givens Rotation. ICML 2024. [[arxiv]](https://arxiv.org/abs/2404.04316)
+1. Liu et al. Dynamic Generation of Personalities with Large Language Models. 2024. [[arxiv]](https://arxiv.org/abs/2404.07084)
+1. Shang et al. How Far Have We Gone in Stripped Binary Code Understanding Using Large Language Models. 2024. [[arxiv]](https://arxiv.org/abs/2404.09836)
+1. Huang et al. LLMTune: Accelerate Database Knob Tuning with Large Language Models. 2024. [[arxiv]](https://arxiv.org/abs/2404.11581)
+1. Deng et al. Text-Tuple-Table: Towards Information Integration in Text-to-Table Generation via Global Tuple Extraction. 2024. [[arxiv]](https://arxiv.org/abs/2404.14215)
+1. Acikgoz et al. Hippocrates: An Open-Source Framework for Advancing Large Language Models in Healthcare. 2024. [[arxiv]](https://arxiv.org/abs/2404.16621)
+1. Zhang et al. Small Language Models Need Strong Verifiers to Self-Correct Reasoning. ACL 2024 Findings. [[arxiv]](https://arxiv.org/abs/2404.17140)
+1. Zhou et al. FREB-TQA: A Fine-Grained Robustness Evaluation Benchmark for Table Question Answering. NAACL 2024. [[arxiv]](https://arxiv.org/abs/2404.18585)
+1. Xu et al. Large Language Models for Cyber Security: A Systematic Literature Review. 2024. [[arxiv]](https://arxiv.org/abs/2405.04760)
+1. Dammu et al. "They are uncultured": Unveiling Covert Harms and Social Threats in LLM Generated Conversations. 2024. [[arxiv]](https://arxiv.org/abs/2405.05378)
+1. Yi et al. A safety realignment framework via subspace-oriented model fusion for large language models. 2024. [[arxiv]](https://arxiv.org/abs/2405.09055)
+1. Lou et al. SPO: Multi-Dimensional Preference Sequential Alignment With Implicit Reward Modeling. 2024. [[arxiv]](https://arxiv.org/abs/2405.12739)
+1. Zhang et al. Getting More from Less: Large Language Models are Good Spontaneous Multilingual Learners. 2024. [[arxiv]](https://arxiv.org/abs/2405.13816)
+1. Zhang et al. TS-Align: A Teacher-Student Collaborative Framework for Scalable Iterative Finetuning of Large Language Models. 2024. [[arxiv]](https://arxiv.org/abs/2405.20215)
+1. Zihong Chen. Sentence Segmentation and Sentence Punctuation Based on XunziALLM. 2024. [[paper]](https://aclanthology.org/2024.lt4hala-1.30)
+1. Gao et al. The Best of Both Worlds: Toward an Honest and Helpful Large Language Model. 2024. [[arxiv]](https://arxiv.org/abs/2406.00380)
+1. Wang and Song. MARS: Benchmarking the Metaphysical Reasoning Abilities of Language Models with a Multi-task Evaluation Dataset. 2024. [[arxiv]](https://arxiv.org/abs/2406.02106)
+1. Hu et al. Computational Limits of Low-Rank Adaptation (LoRA) for Transformer-Based Models. 2024. [[arxiv]](https://arxiv.org/abs/2406.03136)
+1. Ge et al. Time Sensitive Knowledge Editing through Efficient Finetuning. ACL 2024. [[arxiv]](https://arxiv.org/abs/2406.04496)
+1. Tan et al. Peer Review as A Multi-Turn and Long-Context Dialogue with Role-Based Interactions. 2024. [[arxiv]](https://arxiv.org/abs/2406.05688)
+1. Song et al. Turbo Sparse: Achieving LLM SOTA Performance with Minimal Activated Parameters. 2024. [[arxiv]](https://arxiv.org/abs/2406.05955)
+1. Gu et al. RWKV-CLIP: A Robust Vision-Language Representation Learner. 2024. [[arxiv]](https://arxiv.org/abs/2406.06973)
+1. Chen et al. Advancing Tool-Augmented Large Language Models: Integrating Insights from Errors in Inference Trees. 2024. [[arxiv]](https://arxiv.org/abs/2406.07115)
+1. Zhu et al. Are Large Language Models Good Statisticians?. 2024. [[arxiv]](https://arxiv.org/abs/2406.07815)
+1. Li et al. Know the Unknown: An Uncertainty-Sensitive Method for LLM Instruction Tuning. 2024. [[arxiv]](https://arxiv.org/abs/2406.10099)
+1. Ding et al. IntentionQA: A Benchmark for Evaluating Purchase Intention Comprehension Abilities of Language Models in E-commerce. 2024. [[arxiv]](https://arxiv.org/abs/2406.10173)
+1. He et al. COMMUNITY-CROSS-INSTRUCT: Unsupervised Instruction Generation for Aligning Large Language Models to Online Communities. 2024. [[arxiv]](https://arxiv.org/abs/2406.12074)
+1. Lin et al. FVEL: Interactive Formal Verification Environment with Large Language Models via Theorem Proving. 2024. [[arxiv]](https://arxiv.org/abs/2406.14408)
+1. Treutlein et al. Connecting the Dots: LLMs can Infer and Verbalize Latent Structure from Disparate Training Data. 2024. [[arxiv]](https://arxiv.org/abs/2406.14546)
+1. Feng et al. SS-Bench: A Benchmark for Social Story Generation and Evaluation. 2024. [[arxiv]](https://arxiv.org/abs/2406.15695)
+1. Feng et al. Self-Constructed Context Decompilation with Fined-grained Alignment Enhancement. 2024. [[arxiv]](https://arxiv.org/abs/2406.17233)
+1. Liu et al. Large Language Models for Cuffless Blood Pressure Measurement From Wearable Biosignals. 2024. [[arxiv]](https://arxiv.org/abs/2406.18069)
+1. Iyer et al. Exploring Very Low-Resource Translation with LLMs: The University of Edinburgh's Submission to AmericasNLP 2024 Translation Task. AmericasNLP 2024. [[paper]](https://aclanthology.org/2024.americasnlp-1.25)
+1. Li et al. Calibrating LLMs with Preference Optimization on Thought Trees for Generating Rationale in Science Question Scoring. 2024. [[arxiv]](https://arxiv.org/abs/2406.19949)
+1. Yang et al. Financial Knowledge Large Language Model. 2024. [[arxiv]](https://arxiv.org/abs/2407.00365)
+1. Lin et al. DogeRM: Equipping Reward Models with Domain Knowledge through Model Merging. 2024. [[arxiv]](https://arxiv.org/abs/2407.01470)
+1. Bako et al. Evaluating the Semantic Profiling Abilities of LLMs for Natural Language Utterances in Data Visualization. 2024. [[arxiv]](https://arxiv.org/abs/2407.06129)
+1. Huang et al. RoLoRA: Fine-tuning Rotated Outlier-free LLMs for Effective Weight-Activation Quantization. 2024. [[arxiv]](https://arxiv.org/abs/2407.08044)
+1. Jiang et al. LLM-Collaboration on Automatic Science Journalism for the General Audience. 2024. [[arxiv]](https://arxiv.org/abs/2407.09756)
+1. Inouye et al. Applied Auto-tuning on LoRA Hyperparameters. 2024. [[paper]](https://scholarcommons.scu.edu/cseng_senior/272/)
+1. Qi et al. Research on Tibetan Tourism Viewpoints information generation system based on LLM. 2024. [[arxiv]](https://arxiv.org/abs/2407.13561)
+1. Xu et al. Course-Correction: Safety Alignment Using Synthetic Preferences. 2024. [[arxiv]](https://arxiv.org/abs/2407.16637)
+1. Sun et al. LAMBDA: A Large Model Based Data Agent. 2024. [[arxiv]](https://arxiv.org/abs/2407.17535)
+1. Zhu et al. CollectiveSFT: Scaling Large Language Models for Chinese Medical Benchmark with Collective Instructions in Healthcare. 2024. [[arxiv]](https://arxiv.org/abs/2407.19705)
+1. Yu et al. Correcting Negative Bias in Large Language Models through Negative Attention Score Alignment. 2024. [[arxiv]](https://arxiv.org/abs/2408.00137)
+1. Xie et al. The Power of Personalized Datasets: Advancing Chinese Composition Writing for Elementary School through Targeted Model Fine-Tuning. IALP 2024. [[paper]](https://www.asianlp.sg/conferences/ialp2024/proceedings/papers/IALP2024_P055.pdf)
+1. Liu et al. Instruct-Code-Llama: Improving Capabilities of Language Model in Competition Level Code Generation by Online Judge Feedback. ICIC 2024. [[paper]](https://link.springer.com/chapter/10.1007/978-981-97-5669-8_11)
+1. Wang et al. Cybernetic Sentinels: Unveiling the Impact of Safety Data Selection on Model Security in Supervised Fine-Tuning. ICIC 2024. [[paper]](https://link.springer.com/chapter/10.1007/978-981-97-5669-8_23)
+1. Xia et al. Understanding the Performance and Estimating the Cost of LLM Fine-Tuning. 2024. [[arxiv]](https://arxiv.org/abs/2408.04693)
+1. Zeng et al. Perceive, Reflect, and Plan: Designing LLM Agent for Goal-Directed City Navigation without Instructions. 2024. [[arxiv]](https://arxiv.org/abs/2408.04168)
+1. Xia et al. Using Pre-trained Language Model for Accurate ESG Prediction. FinNLP 2024. [[paper]](https://aclanthology.org/2024.finnlp-2.1/)
+1. Liang et al. I-SHEEP: Self-Alignment of LLM from Scratch through an Iterative Self-Enhancement Paradigm. 2024. [[arxiv]](https://arxiv.org/abs/2408.08072)
+1. Bai et al. Aligning Large Language Model with Direct Multi-Preference Optimization for Recommendation. CIKM 2024. [[paper]](https://dl.acm.org/doi/10.1145/3627673.3679611)
+1. **[StarWhisper](https://github.com/Yu-Yang-Li/StarWhisper)**: A large language model for Astronomy, based on ChatGLM2-6B and Qwen-14B.
+1. **[DISC-LawLLM](https://github.com/FudanDISC/DISC-LawLLM)**: A large language model specialized in Chinese legal domain, based on Baichuan-13B, is capable of retrieving and reasoning on legal knowledge.
+1. **[Sunsimiao](https://github.com/X-D-Lab/Sunsimiao)**: A large language model specialized in Chinese medical domain, based on Baichuan-7B and ChatGLM-6B.
+1. **[CareGPT](https://github.com/WangRongsheng/CareGPT)**: A series of large language models for Chinese medical domain, based on LLaMA2-7B and Baichuan-13B.
+1. **[MachineMindset](https://github.com/PKU-YuanGroup/Machine-Mindset/)**: A series of MBTI Personality large language models, capable of giving any LLM 16 different personality types based on different datasets and training methods.
+1. **[Luminia-13B-v3](https://huggingface.co/Nekochu/Luminia-13B-v3)**: A large language model specialized in generate metadata for stable diffusion. [[demo]](https://huggingface.co/spaces/Nekochu/Luminia-13B_SD_Prompt)
+1. **[Chinese-LLaVA-Med](https://github.com/BUAADreamer/Chinese-LLaVA-Med)**: A multimodal large language model specialized in Chinese medical domain, based on LLaVA-1.5-7B.
+1. **[AutoRE](https://github.com/THUDM/AutoRE)**: A document-level relation extraction system based on large language models.
+1. **[NVIDIA RTX AI Toolkit](https://github.com/NVIDIA/RTX-AI-Toolkit)**: SDKs for fine-tuning LLMs on Windows PC for NVIDIA RTX.
+1. **[LazyLLM](https://github.com/LazyAGI/LazyLLM)**: An easy and lazy way for building multi-agent LLMs applications and supports model fine-tuning via LLaMA Factory.
+1. **[RAG-Retrieval](https://github.com/NLPJCL/RAG-Retrieval)**: A full pipeline for RAG retrieval model fine-tuning, inference, and distillation. [[blog]](https://zhuanlan.zhihu.com/p/987727357)
+1. **[360-LLaMA-Factory](https://github.com/Qihoo360/360-LLaMA-Factory)**: A modified library that supports long sequence SFT & DPO using ring attention.
+1. **[Sky-T1](https://novasky-ai.github.io/posts/sky-t1/)**: An o1-like model fine-tuned by NovaSky AI with very small cost.
+
+</details>
+
+## License
+
+This repository is licensed under the [Apache-2.0 License](LICENSE).
+
+Please follow the model licenses to use the corresponding model weights: [Baichuan 2](https://huggingface.co/baichuan-inc/Baichuan2-7B-Base/blob/main/Community%20License%20for%20Baichuan%202%20Model.pdf) / [BLOOM](https://huggingface.co/spaces/bigscience/license) / [ChatGLM3](https://github.com/THUDM/ChatGLM3/blob/main/MODEL_LICENSE) / [Command R](https://cohere.com/c4ai-cc-by-nc-license) / [DeepSeek](https://github.com/deepseek-ai/DeepSeek-LLM/blob/main/LICENSE-MODEL) / [Falcon](https://huggingface.co/tiiuae/falcon-180B/blob/main/LICENSE.txt) / [Gemma](https://ai.google.dev/gemma/terms) / [GLM-4](https://huggingface.co/THUDM/glm-4-9b/blob/main/LICENSE) / [GPT-2](https://github.com/openai/gpt-2/blob/master/LICENSE) / [Granite](LICENSE) / [Index](https://huggingface.co/IndexTeam/Index-1.9B/blob/main/LICENSE) / [InternLM](https://github.com/InternLM/InternLM#license) / [Llama](https://github.com/facebookresearch/llama/blob/main/MODEL_CARD.md) / [Llama 2](https://ai.meta.com/llama/license/) / [Llama 3](https://llama.meta.com/llama3/license/) / [Llama 4](https://github.com/meta-llama/llama-models/blob/main/models/llama4/LICENSE) / [MiniCPM](https://github.com/OpenBMB/MiniCPM/blob/main/MiniCPM%20Model%20License.md) / [Mistral/Mixtral/Pixtral](LICENSE) / [OLMo](LICENSE) / [Phi-1.5/Phi-2](https://huggingface.co/microsoft/phi-1_5/resolve/main/Research%20License.docx) / [Phi-3/Phi-4](https://huggingface.co/microsoft/Phi-3-mini-4k-instruct/blob/main/LICENSE) / [Qwen](https://github.com/QwenLM/Qwen/blob/main/Tongyi%20Qianwen%20LICENSE%20AGREEMENT) / [Skywork](https://huggingface.co/Skywork/Skywork-13B-base/blob/main/Skywork%20Community%20License.pdf) / [StarCoder 2](https://huggingface.co/spaces/bigcode/bigcode-model-license-agreement) / [TeleChat2](https://huggingface.co/Tele-AI/telechat-7B/blob/main/TeleChat%E6%A8%A1%E5%9E%8B%E7%A4%BE%E5%8C%BA%E8%AE%B8%E5%8F%AF%E5%8D%8F%E8%AE%AE.pdf) / [XVERSE](https://github.com/xverse-ai/XVERSE-13B/blob/main/MODEL_LICENSE.pdf) / [Yi](https://huggingface.co/01-ai/Yi-6B/blob/main/LICENSE) / [Yi-1.5](LICENSE) / [Yuan 2](https://github.com/IEIT-Yuan/Yuan-2.0/blob/main/LICENSE-Yuan)
+
+## Citation
+
+If this work is helpful, please kindly cite as:
+
+```bibtex
+@inproceedings{zheng2024llamafactory,
+  title={LlamaFactory: Unified Efficient Fine-Tuning of 100+ Language Models},
+  author={Yaowei Zheng and Richong Zhang and Junhao Zhang and Yanhan Ye and Zheyan Luo and Zhangchi Feng and Yongqiang Ma},
+  booktitle={Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 3: System Demonstrations)},
+  address={Bangkok, Thailand},
+  publisher={Association for Computational Linguistics},
+  year={2024},
+  url={http://arxiv.org/abs/2403.13372}
+}
 ```
 
-### A.5 RAG 配置（当前主线）
-- 检索：Dense（FAISS）
-- Embedding：bge-base-zh（V3最优）
-- 切分策略：递归语义切分
-- 参数建议：
-  - `chunk_size=300`
-  - `chunk_overlap=50`
-  - `top_k=3`
+## Acknowledgement
 
-### A.6 轻量 Agent 配置（当前状态）
-- 工具：`search_law(query, top_k)`
-- Agent 流程：function calling（最小实现）
-- 轨迹日志：`agent_minimal/logs/trace_*.json`
-- 当前验证状态：工具调用闭环未触发（0/3），待修复
+This repo benefits from [PEFT](https://github.com/huggingface/peft), [TRL](https://github.com/huggingface/trl), [QLoRA](https://github.com/artidoro/qlora) and [FastChat](https://github.com/lm-sys/FastChat). Thanks for their wonderful works.
 
----
+## Star History
 
-## 附录 B：实验记录模板
-
-> 建议每次实验复制一份，保证可追溯与可复现。
-
-### B.1 实验元信息
-- 实验ID：
-- 日期：
-- 负责人：
-- 分支/提交：
-- 目标模块：SFT / DPO / Eval / Deploy / RAG / Agent
-- 假设（Hypothesis）：
-
-### B.2 输入配置
-- 模型：
-- 数据集：
-- 关键超参：
-- 运行命令：
-```bash
-# 命令粘贴区
-```
-
-### B.3 输出产物
-- 日志路径：
-- 模型输出路径：
-- 报告路径：
-- 图表路径：
-
-### B.4 指标结果
-| 指标 | 值 | 备注 |
-|---|---:|---|
-| train_loss |  |  |
-| eval_loss |  |  |
-| coverage |  |  |
-| law_accuracy |  |  |
-| TTFT P99 |  |  |
-| TPS |  |  |
-
-### B.5 结果解读
-1. 主要结论：
-2. 与预期是否一致：
-3. 异常点：
-4. 根因分析（候选）：
-
-### B.6 下一步动作
-- [ ] 动作1
-- [ ] 动作2
-- [ ] 动作3
-
----
-
-## 附录 C：术语表
-
-- **SFT (Supervised Fine-Tuning)**：监督微调，用标注问答对学习“如何回答”。  
-- **DPO (Direct Preference Optimization)**：直接偏好优化，用 chosen/rejected 对学习“更偏好的回答”。  
-- **LoRA / QLoRA**：低秩参数微调；QLoRA 在低比特量化基座上训练 LoRA 以省显存。  
-- **train_on_prompt=false**：只在 assistant token 上计算损失。  
-- **Catastrophic Forgetting**：领域微调后通用能力明显退化。  
-- **RAG (Retrieval-Augmented Generation)**：检索增强生成，将外部知识注入上下文。  
-- **Dense Retrieval**：基于向量语义相似度的检索。  
-- **BM25**：基于词频统计的稀疏检索方法。  
-- **RRF (Reciprocal Rank Fusion)**：多路检索结果融合算法。  
-- **Reranker**：对召回候选做二次精排的模型。  
-- **KV Cache**：缓存历史 token 的 Key/Value，减少重复计算。  
-- **PagedAttention**：vLLM 的分页式 KV 管理机制，减少显存碎片。  
-- **TTFT (Time To First Token)**：首 token 延迟。  
-- **TPS (Tokens Per Second)**：吞吐速度（每秒生成 token 数）。  
-- **P99 延迟**：99 分位延迟，反映尾部请求体验。  
-- **Function Calling**：模型按 schema 调用外部工具并回填结果。  
-
----
+![Star History Chart](https://api.star-history.com/svg?repos=hiyouga/LLaMA-Factory&type=Date)
