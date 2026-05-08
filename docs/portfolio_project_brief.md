@@ -1,62 +1,62 @@
-# Law-Expert-7B — Project Portfolio Brief
+# Law-Expert-7B —— 项目作品集简报
 
-## Project Goal
-Built an end-to-end legal LLM engineering pipeline to improve Chinese legal QA quality while preserving general-domain capability, and to validate the model through reproducible evaluation, deployment benchmarks, and RAG/agent extensions.
+## 项目目标
+构建一条端到端的法律大模型工程流水线，在提升中文法律问答质量的同时保持通用能力稳定，并通过可复现评测、部署基准与 RAG/Agent 扩展验证模型效果。
 
-## End-to-End Pipeline
-**Data Engineering → SFT → DPO → Eval/Regression → vLLM Deploy/Benchmark → RAG → Lightweight Agent**
+## 端到端流水线
+**数据工程 → SFT → DPO → 评测/回归 → vLLM 部署/压测 → RAG → 轻量 Agent**
 
-- **Data Engineering:** Designed quality-driven sampling and cleaning workflows for legal QA data, then validated data strategy with controlled A/B experiments.
-- **SFT (QLoRA):** Fine-tuned Qwen2.5-7B-Instruct for legal response style and structured reasoning.
-- **DPO:** Added preference alignment to improve legal grounding and completeness.
-- **Eval/Regression:** Standardized automated evaluation and regression alerts (law accuracy, coverage, repetition, hallucination).
-- **vLLM Deploy/Benchmark:** Served merged model through OpenAI-compatible API and tuned throughput/latency under concurrency.
-- **RAG:** Evaluated retrieval augmentation variants (dense, hybrid, reranker, citation tracing) with ablation and case-level reports.
-- **Lightweight Agent:** Implemented minimal function-calling loop with trace-based verification.
+- **数据工程：** 设计以质量为导向的法律问答数据采样与清洗流程，并通过可控 A/B 实验验证数据策略。
+- **SFT（QLoRA）：** 基于 Qwen2.5-7B-Instruct 微调法律回答风格与结构化推理能力。
+- **DPO：** 引入偏好对齐，提升法律依据扎实度与回答完整性。
+- **评测/回归：** 标准化自动评测与回归告警（法律准确性、覆盖率、重复、幻觉）。
+- **vLLM 部署/压测：** 通过 OpenAI 兼容 API 提供合并模型服务，并在并发场景下优化吞吐与时延。
+- **RAG：** 对检索增强方案（稠密、混合、重排、引用追踪）进行消融与案例级分析。
+- **轻量 Agent：** 实现最小函数调用闭环，并基于 trace 做可验证评估。
 
-## Most Important Quantified Results
-- **P3 data-engineering A/B win (random 500 vs engineered 500):**
-  - `eval_loss`: **1.1755 → 1.0844** (relative **-7.75%**)
-  - auto-eval total: **6.55 → 8.15**
-  - head-to-head: **A=2, B=15, Tie=3**
-- **General capability stability (CEval):** average remained stable around 79 (**78.83 / 79.42 / 79.05** for Base/SFT/DPO), indicating no catastrophic forgetting.
-- **Legal specialization gains:** key-point legal coverage improved **9.9% → 13.3% → 16.7%** (Base/SFT/DPO).
-- **vLLM benchmark throughput (FP16):**
-  - Concurrency 1/4/8/16: **48.58 / 161.73 / 260.73 / 486.64 TPS**
-  - Long output scenario (c=8, max_tokens=256): **263.04 TPS**.
-- **RAG findings:** early RAG component added an average **+0.9** score (V1→V2), but case-level variance is high (best **+13.7**, worst **-16.7**) and some advanced stacks reduced quality.
-- **Agent status:** function-calling closure is **0/3** traces passing tool-execution + final-answer criteria (known gap).
+## 最重要的量化结果
+- **P3 数据工程 A/B 获胜（随机 500 vs 工程化 500）：**
+  - `eval_loss`：**1.1755 → 1.0844**（相对 **-7.75%**）
+  - 自动评测总分：**6.55 → 8.15**
+  - 对战结果：**A=2，B=15，Tie=3**
+- **通用能力稳定（CEval）：** Base/SFT/DPO 平均分稳定在 79 左右（**78.83 / 79.42 / 79.05**），无灾难性遗忘。
+- **法律专项能力提升：** 法律关键点覆盖率 **9.9% → 13.3% → 16.7%**（Base/SFT/DPO）。
+- **vLLM 吞吐基准（FP16）：**
+  - 并发 1/4/8/16：**48.58 / 161.73 / 260.73 / 486.64 TPS**
+  - 长输出场景（c=8, max_tokens=256）：**263.04 TPS**
+- **RAG 结论：** 早期 RAG 组件平均带来 **+0.9** 分（V1→V2），但案例间波动较大（最佳 **+13.7**、最差 **-16.7**），部分高级堆栈会降低质量。
+- **Agent 状态：** 函数调用闭环目前 **0/3** 条 trace 通过“工具执行 + 最终回答”联合标准（已知缺口）。
 
-## Personal Contributions & Skills Demonstrated
-- **Data engineering:** candidate pool construction, cleaning-rule rationale, stratified/quality sampling design.
-- **Experimentation:** controlled A/B protocol, hyperparameter comparisons, ablation analysis.
-- **Evaluation:** metric design and automation, regression-alert thresholds, cross-stage comparison (Base/SFT/DPO).
-- **Deployment:** vLLM serving, OpenAI-compatible inference integration, production-lean configuration.
-- **Performance tuning:** concurrency sweeps, TTFT/P99/TPS interpretation, capacity-performance tradeoff analysis.
-- **RAG analysis:** retrieval strategy comparison, component-level attribution, latency-quality tradeoff diagnosis.
+## 个人贡献与能力体现
+- **数据工程：** 候选池构建、清洗规则论证、分层/质量采样设计。
+- **实验设计：** 可控 A/B 协议、超参对比、消融分析。
+- **评测体系：** 指标设计与自动化、回归告警阈值、跨阶段对比（Base/SFT/DPO）。
+- **部署能力：** vLLM 服务化、OpenAI 兼容推理接入、偏生产化配置。
+- **性能分析：** 并发扫参与 TTFT/P99/TPS 解读、容量-性能权衡分析。
+- **RAG 诊断：** 检索策略比较、组件级归因、时延-质量权衡诊断。
 
-## Limitations (Honest Assessment)
-- Some legal coverage metrics rely on strict string matching and may undercount semantically correct paraphrases.
-- RAG benefits are not uniformly positive; quality can regress depending on retriever/reranker/prompt stack.
-- Lightweight agent function-calling has not yet reached reliable tool-trigger behavior (currently 0/3).
+## 局限性（客观评估）
+- 部分法律覆盖指标依赖严格字符串匹配，可能低估语义等价表述。
+- RAG 收益并非稳定为正；不同检索器/重排器/提示词组合可能导致质量回退。
+- 轻量 Agent 的函数调用尚未达到可靠触发水平（当前 0/3）。
 
-## How to Verify (Existing Scripts)
-> Run from repository root unless noted.
+## 如何复现（现有脚本）
+> 除特殊说明外，均在仓库根目录运行。
 
 ```bash
-# 1) Reproduce P3 auto-eval report (eval_loss + total score comparison)
+# 1) 复现 P3 自动评测报告（eval_loss + 总分对比）
 python eval/auto_eval_p3.py
 
-# 2) Reproduce standardized eval/regression pipeline (requires model paths in script)
+# 2) 复现标准化评测/回归流水线（需在脚本中配置模型路径）
 bash eval/run_eval_pipeline.sh
 
-# 3) Reproduce vLLM concurrency benchmark summary (requires running vLLM server)
+# 3) 复现 vLLM 并发压测汇总（需先启动 vLLM 服务）
 bash bench/run_concurrency_sweep.sh fp16_baseline
 python bench/summarize_sweep.py --tag fp16_baseline
 
-# 4) Reproduce RAG ablation report (requires local service/models)
+# 4) 复现 RAG 消融报告（需本地服务/模型）
 python rag/phase_d/ablation_experiment.py
 
-# 5) Re-check lightweight agent tool-call pass rate
+# 5) 复查轻量 Agent 工具调用通过率
 python agent_minimal/eval_agent_trace.py
 ```
